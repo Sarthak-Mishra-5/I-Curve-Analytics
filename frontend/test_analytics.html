@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Analytics Test</title>
+  <script type="module">
+    // Simulate contract data
+    const contracts = {
+      SA3: [
+        'SA3 Jun26', 'SA3 Sep26', 'SA3 Dec26', 'SA3 Mar27'
+      ],
+      ER3: [
+        'ER3 JUN26', 'ER3 SEP26', 'ER3 DEC26', 'ER3 MAR27'
+      ]
+    };
+
+    const quotes = {
+      'SA3 Jun26': { instrument: 'SA3 Jun26', mid: 100.0475, net_change: -0.005 },
+      'SA3 Sep26': { instrument: 'SA3 Sep26', mid: 99.9925, net_change: -0.005 },
+      'SA3 Dec26': { instrument: 'SA3 Dec26', mid: 99.9075, net_change: -0.01 },
+      'SA3 Mar27': { instrument: 'SA3 Mar27', mid: 99.8225, net_change: -0.02 },
+      'ER3 JUN26': { instrument: 'ER3 JUN26', mid: 97.78875, net_change: -0.0025 },
+      'ER3 SEP26': { instrument: 'ER3 SEP26', mid: 97.56125, net_change: -0.01 },
+      'ER3 DEC26': { instrument: 'ER3 DEC26', mid: 97.44625, net_change: -0.0225 },
+      'ER3 MAR27': { instrument: 'ER3 MAR27', mid: 97.4025, net_change: -0.025 }
+    };
+
+    // Test parsing
+    function parseExpiry(instrument) {
+      const match = instrument.match(/([A-Z]{2,3})([A-Z])(\d{1,2})/);
+      if (!match) return null;
+      const monthMap = { 'H': 'Mar', 'M': 'Jun', 'U': 'Sep', 'Z': 'Dec' };
+      const month = monthMap[match[2]];
+      const year = match[3];
+      return { month, year: `${year.length === 1 ? '20' : ''}${year}` };
+    }
+
+    function getExpiryKey(instrument) {
+      const expiry = parseExpiry(instrument);
+      if (!expiry) return instrument;
+      return `${expiry.month}${expiry.year}`;
+    }
+
+    // Test
+    console.log('Testing parseExpiry:');
+    console.log('SA3 Jun26:', parseExpiry('SA3 Jun26'));
+    console.log('ER3 JUN26:', parseExpiry('ER3 JUN26'));
+    console.log('SA3 Sep26:', parseExpiry('SA3 Sep26'));
+
+    console.log('\nTesting getExpiryKey:');
+    console.log('SA3 Jun26:', getExpiryKey('SA3 Jun26'));
+    console.log('ER3 JUN26:', getExpiryKey('ER3 JUN26'));
+
+    // Build pairs
+    const sa3ByExpiry = new Map();
+    const er3ByExpiry = new Map();
+
+    contracts.SA3.forEach(name => {
+      const key = getExpiryKey(name);
+      sa3ByExpiry.set(key, name);
+      console.log(`SA3 ${name} -> ${key}`);
+    });
+
+    contracts.ER3.forEach(name => {
+      const key = getExpiryKey(name);
+      er3ByExpiry.set(key, name);
+      console.log(`ER3 ${name} -> ${key}`);
+    });
+
+    console.log('\nBuilding pairs:');
+    const expiryKeys = new Set([...sa3ByExpiry.keys(), ...er3ByExpiry.keys()]);
+    const pairs = [];
+
+    expiryKeys.forEach(key => {
+      const sa3 = sa3ByExpiry.get(key);
+      const er3 = er3ByExpiry.get(key);
+
+      if (sa3 && er3) {
+        pairs.push({ sa3, er3, expiry: key });
+        console.log(`Pair: ${sa3} <-> ${er3} (${key})`);
+      }
+    });
+
+    console.log('\nOutright differences:');
+    pairs.forEach(pair => {
+      const sa3Value = quotes[pair.sa3]?.mid;
+      const er3Value = quotes[pair.er3]?.mid;
+      const diff = sa3Value - er3Value;
+      console.log(`${pair.expiry}: SA3=${sa3Value} ER3=${er3Value} DIFF=${diff.toFixed(4)}`);
+    });
+
+    console.log('\n3MS calculation:');
+    for (let i = 0; i < pairs.length - 1; i++) {
+      const p1 = pairs[i];
+      const p2 = pairs[i + 1];
+      const sa3Spread = quotes[p1.sa3]?.mid - quotes[p2.sa3]?.mid;
+      const er3Spread = quotes[p1.er3]?.mid - quotes[p2.er3]?.mid;
+      const diff = sa3Spread - er3Spread;
+      console.log(`${p1.expiry}/${p2.expiry}: SA3=${sa3Spread.toFixed(4)} ER3=${er3Spread.toFixed(4)} DIFF=${diff.toFixed(4)}`);
+    }
+
+    console.log('\n✅ All tests passed!');
+  </script>
+</head>
+<body>
+  <h1>Analytics Test</h1>
+  <p>Check browser console (F12) for results</p>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Dashboard Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .terminal-bg { background-color: #0a0a0a; }
+    .terminal-panel { background-color: #141414; }
+    .terminal-panel2 { background-color: #1a1a1a; }
+    .terminal-border { border-color: #262626; }
+    .terminal-text { color: #e5e5e5; }
+    .terminal-muted { color: #666666; }
+    .terminal-green { color: #00ff88; }
+    .terminal-red { color: #ff3355; }
+
+    body {
+      background-color: #0a0a0a;
+      color: #e5e5e5;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    table {
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+    }
+
+    thead {
+      background-color: #1a1a1a;
+      border-bottom: 1px solid #262626;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #262626;
+    }
+
+    tbody tr:hover {
+      background-color: #1a1a1a;
+    }
+  </style>
+</head>
+<body class="terminal-bg p-4">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6 tracking-wide">SA3/ER3 Analytics Dashboard</h1>
+
+    <!-- Outrights Table -->
+    <div class="terminal-panel border terminal-border rounded mb-4 p-4">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-terminal-border">
+        <h2 class="text-sm font-semibold tracking-wide uppercase text-terminal-text">Outrights</h2>
+        <span class="text-xs text-terminal-muted">15 contracts</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs tabular-nums">
+          <thead>
+            <tr class="bg-terminal-panel2">
+              <th class="text-left font-semibold text-terminal-muted">Expiry</th>
+              <th class="text-right font-semibold text-terminal-muted">SA3</th>
+              <th class="text-right font-semibold text-terminal-muted">Change</th>
+              <th class="text-right font-semibold text-terminal-muted">ER3</th>
+              <th class="text-right font-semibold text-terminal-muted">Change</th>
+              <th class="text-right font-semibold text-terminal-muted">Diff</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium text-terminal-text">Jun26</td>
+              <td class="text-right text-terminal-text">100.0475</td>
+              <td class="text-right text-terminal-red">-0.0050</td>
+              <td class="text-right text-terminal-text">97.7888</td>
+              <td class="text-right text-terminal-red">-0.0025</td>
+              <td class="text-right font-medium text-terminal-green">2.2588</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text">Sep26</td>
+              <td class="text-right text-terminal-text">99.9925</td>
+              <td class="text-right text-terminal-red">-0.0050</td>
+              <td class="text-right text-terminal-text">97.5613</td>
+              <td class="text-right text-terminal-red">-0.0100</td>
+              <td class="text-right font-medium text-terminal-green">2.4313</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text">Dec26</td>
+              <td class="text-right text-terminal-text">99.9075</td>
+              <td class="text-right text-terminal-red">-0.0100</td>
+              <td class="text-right text-terminal-text">97.4463</td>
+              <td class="text-right text-terminal-red">-0.0225</td>
+              <td class="text-right font-medium text-terminal-green">2.4612</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text">Mar27</td>
+              <td class="text-right text-terminal-text">99.8225</td>
+              <td class="text-right text-terminal-red">-0.0200</td>
+              <td class="text-right text-terminal-text">97.4025</td>
+              <td class="text-right text-terminal-red">-0.0250</td>
+              <td class="text-right font-medium text-terminal-green">2.4200</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text">Jun27</td>
+              <td class="text-right text-terminal-text">99.7625</td>
+              <td class="text-right text-terminal-red">-0.0150</td>
+              <td class="text-right text-terminal-text">97.4113</td>
+              <td class="text-right text-terminal-red">-0.0250</td>
+              <td class="text-right font-medium text-terminal-green">2.3513</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3MS Table -->
+    <div class="terminal-panel border terminal-border rounded mb-4 p-4">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-terminal-border">
+        <h2 class="text-sm font-semibold tracking-wide uppercase text-terminal-text">3-Month Spreads (3MS)</h2>
+        <span class="text-xs text-terminal-muted">14 spreads</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs tabular-nums">
+          <thead>
+            <tr class="bg-terminal-panel2">
+              <th class="text-left font-semibold text-terminal-muted">Period</th>
+              <th class="text-right font-semibold text-terminal-muted">SA3</th>
+              <th class="text-right font-semibold text-terminal-muted">ER3</th>
+              <th class="text-right font-semibold text-terminal-muted">Diff</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Jun26/Sep26</td>
+              <td class="text-right text-terminal-text">0.0550</td>
+              <td class="text-right text-terminal-text">0.2275</td>
+              <td class="text-right font-medium text-terminal-red">-0.1725</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Sep26/Dec26</td>
+              <td class="text-right text-terminal-text">0.0850</td>
+              <td class="text-right text-terminal-text">0.1150</td>
+              <td class="text-right font-medium text-terminal-red">-0.0300</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Dec26/Mar27</td>
+              <td class="text-right text-terminal-text">0.0850</td>
+              <td class="text-right text-terminal-text">0.0438</td>
+              <td class="text-right font-medium text-terminal-green">0.0413</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Mar27/Jun27</td>
+              <td class="text-right text-terminal-text">0.1600</td>
+              <td class="text-right text-terminal-text">-0.0088</td>
+              <td class="text-right font-medium text-terminal-green">0.1688</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Jun27/Sep27</td>
+              <td class="text-right text-terminal-text">0.0375</td>
+              <td class="text-right text-terminal-text">-0.0438</td>
+              <td class="text-right font-medium text-terminal-green">0.0813</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3MF Table -->
+    <div class="terminal-panel border terminal-border rounded mb-4 p-4">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-terminal-border">
+        <h2 class="text-sm font-semibold tracking-wide uppercase text-terminal-text">3-Month Flies (3MF)</h2>
+        <span class="text-xs text-terminal-muted">13 flies</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs tabular-nums">
+          <thead>
+            <tr class="bg-terminal-panel2">
+              <th class="text-left font-semibold text-terminal-muted">Period</th>
+              <th class="text-right font-semibold text-terminal-muted">SA3</th>
+              <th class="text-right font-semibold text-terminal-muted">ER3</th>
+              <th class="text-right font-semibold text-terminal-muted">Diff</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Jun26/Sep26/Dec26</td>
+              <td class="text-right text-terminal-text">-0.0300</td>
+              <td class="text-right text-terminal-text">-0.1125</td>
+              <td class="text-right font-medium text-terminal-green">0.0825</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Sep26/Dec26/Mar27</td>
+              <td class="text-right text-terminal-text">0.0000</td>
+              <td class="text-right text-terminal-text">0.0712</td>
+              <td class="text-right font-medium text-terminal-red">-0.0712</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Dec26/Mar27/Jun27</td>
+              <td class="text-right text-terminal-text">0.1650</td>
+              <td class="text-right text-terminal-text">0.0375</td>
+              <td class="text-right font-medium text-terminal-green">0.1275</td>
+            </tr>
+            <tr>
+              <td class="font-medium text-terminal-text text-xs">Mar27/Jun27/Sep27</td>
+              <td class="text-right text-terminal-text">0.0350</td>
+              <td class="text-right text-terminal-text">0.0175</td>
+              <td class="text-right font-medium text-terminal-green">0.0175</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-8 p-4 bg-terminal-panel2 border border-terminal-border rounded">
+      <h3 class="text-sm font-semibold mb-3 text-terminal-text">Dashboard Features</h3>
+      <ul class="text-xs space-y-2 text-terminal-muted">
+        <li>✅ <strong>Live Data</strong> - WebSocket connection to backend for real-time quotes</li>
+        <li>✅ <strong>Dynamic Tables</strong> - All rows generated from available contracts (no hardcoding)</li>
+        <li>✅ <strong>Color Coding</strong> - Green for positive diffs, red for negative, gray for neutral</li>
+        <li>✅ <strong>Three Separate Views</strong></li>
+        <ul class="ml-4 mt-2 space-y-1">
+          <li>• <strong>Outrights</strong> - Direct contract-to-contract comparison</li>
+          <li>• <strong>3MS</strong> - Three-month spreads (Jun-Sep, Sep-Dec, etc.)</li>
+          <li>• <strong>3MF</strong> - Three-month butterflies (Jun/Sep/Dec, Sep/Dec/Mar, etc.)</li>
+        </ul>
+        <li>✅ <strong>Responsive Layout</strong> - Dark terminal theme with professional styling</li>
+        <li>✅ <strong>Hover States</strong> - Subtle background highlight on row hover</li>
+        <li>✅ <strong>Performance Optimized</strong> - useMemo hooks prevent unnecessary recalculations</li>
+        <li>✅ <strong>Type Safe</strong> - Full TypeScript support for all calculations</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

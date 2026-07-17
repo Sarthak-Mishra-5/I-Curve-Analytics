@@ -1,0 +1,14 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+websockets==13.1
+numpy==2.1.1
+pandas==2.2.3
+polars==1.8.2
+scipy==1.14.1
+statsmodels==0.14.4
+scikit-learn==1.5.2
+numba==0.60.0
+lightstreamer-client-lib==2.2.1
+python-dateutil==2.9.0
+orjson==3.10.7

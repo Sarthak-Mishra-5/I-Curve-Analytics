@@ -1,0 +1,184 @@
+INFO:     Started server process [33232]
+INFO:     Waiting for application startup.
+2026-05-27 10:22:09,527 INFO backend.streaming.lightstreamer_client: LS connecting to https://ls-md.corp.hertshtengroup.com/ adapter_set=TTsdkLSAdapter
+2026-05-27 10:22:09,527 INFO backend.api.app: RV platform started. contracts=30 mock=False
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:955: RuntimeWarning: divide by zero encountered in log
+  llf = -nobs2*np.log(2*np.pi) - nobs2*np.log(ssr / nobs) - nobs2
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: invalid value encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\analytics\cointegration.py:55: CollinearityWarning: y0 and y1 are (almost) perfectly colinear.Cointegration test is not reliable in this case.
+  t_stat, p_val, _ = coint(y, x, maxlag=3)
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
+C:\Users\sarthak.mishra\OneDrive - hertshtengroup.com\Documents\SA3 & ER3\backend\.venv\Lib\site-packages\statsmodels\regression\linear_model.py:1782: RuntimeWarning: divide by zero encountered in scalar divide
+  return 1 - self.ssr/self.centered_tss
