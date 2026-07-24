@@ -148,15 +148,28 @@ def fetch_historical_ohlc(
     return pd.DataFrame(rows).sort_values('timestamp').reset_index(drop=True)
 
 
+_MIN_REQUEST_INTERVAL = 60.0 / RATE_LIMIT_PER_MINUTE
+
+
 def _wait_for_rate_limit() -> None:
+    """Cap requests to RATE_LIMIT_PER_MINUTE within any rolling 60s window,
+    AND space them at least _MIN_REQUEST_INTERVAL apart. The window cap alone
+    lets the first N requests fire back-to-back in a fraction of a second
+    (technically within quota), which trips the vendor's burst/DDoS
+    protection well before the per-minute cap is ever reached — seen as
+    HTTP 429 during multi-curve startup backfill."""
     while True:
         with _RATE_LIMIT_LOCK:
             now = time.monotonic()
             window_start = now - 60.0
             while _REQUEST_TIMES and _REQUEST_TIMES[0] < window_start:
                 _REQUEST_TIMES.popleft()
-            if len(_REQUEST_TIMES) < RATE_LIMIT_PER_MINUTE:
+            since_last = (now - _REQUEST_TIMES[-1]) if _REQUEST_TIMES else _MIN_REQUEST_INTERVAL
+            if len(_REQUEST_TIMES) < RATE_LIMIT_PER_MINUTE and since_last >= _MIN_REQUEST_INTERVAL:
                 _REQUEST_TIMES.append(now)
                 return
-            sleep_for = max(0.05, 60.0 - (now - _REQUEST_TIMES[0]))
+            if len(_REQUEST_TIMES) >= RATE_LIMIT_PER_MINUTE:
+                sleep_for = max(0.05, 60.0 - (now - _REQUEST_TIMES[0]))
+            else:
+                sleep_for = max(0.05, _MIN_REQUEST_INTERVAL - since_last)
         time.sleep(sleep_for)

@@ -49,7 +49,7 @@ export default function Header({ activeView, onChangeView }: Props) {
           RV Terminal
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ViewTab label="I Curve Analytics" active={activeView === 'icurve'} onClick={() => onChangeView('icurve')} />
+          <ViewTab label="Curve Analytics" active={activeView === 'icurve'} onClick={() => onChangeView('icurve')} />
           <ViewTab label="SA3 / ER3" active={activeView === 'sa3er3'} onClick={() => onChangeView('sa3er3')} />
         </div>
       </div>

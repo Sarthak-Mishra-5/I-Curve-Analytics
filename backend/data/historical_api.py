@@ -97,13 +97,55 @@ def fetch_historical_ohlc(
 # two legs with '-', e.g. "ERU26-Z26" for Sep26-Dec26) — distinct from the
 # "FSR"-prefixed convention used by fetch_historical_ohlc() above for
 # SA3/ER3, so it's fetched directly rather than through that function.
-_I_CURVE_QUARTER_CODE = {"Mar": "H", "Jun": "M", "Sep": "U", "Dec": "Z"}
+_CURVE_QUARTER_CODE = {"Mar": "H", "Jun": "M", "Sep": "U", "Dec": "Z"}
+_CURVE_HISTORICAL_PREFIX = {
+    "I": "ER",
+    "SR3": "SRA",
+    "SA3": "FSR",
+    "SO3": "SON",
+}
+# The OHLC service accepts the requested symbols individually and in small
+# groups, but rejects larger comma-separated batches with HTTP 400. Keep
+# requests deliberately small so a custom structure with many rolled legs can
+# still obtain its full history.
+_HISTORICAL_BATCH_SIZE = 2
 
 
 def tenor_to_i_curve_code(tenor: str) -> str:
     """'Sep26' -> 'ERU26'."""
+    return tenor_to_curve_code("I", tenor)
+
+
+def tenor_to_curve_code(curve_id: str, tenor: str) -> str:
+    """Map a tenor to the curve's QH historical code, e.g. SR3 Sep26 -> SRAU26."""
     month, year = tenor[:3], tenor[3:]
-    return f"ER{_I_CURVE_QUARTER_CODE[month]}{year}"
+    prefix = _CURVE_HISTORICAL_PREFIX[curve_id]
+    return f"{prefix}{_CURVE_QUARTER_CODE[month]}{year}"
+
+
+def curve_instrument_to_code(curve_id: str, name: str) -> str | None:
+    """Map outrights, spreads, and 3MF flies to QH historical-API codes."""
+    if curve_id not in _CURVE_HISTORICAL_PREFIX:
+        return None
+    body = name.split(" ", 1)[1]
+    if "3MF" in body:
+        from ..config import TENOR_ORDER
+
+        tenor = body.split()[0]
+        if tenor not in TENOR_ORDER:
+            return None
+        idx = TENOR_ORDER.index(tenor)
+        if idx + 2 >= len(TENOR_ORDER):
+            return None
+        legs = TENOR_ORDER[idx:idx + 3]
+    elif "-" in body:
+        legs = body.split("-")
+    else:
+        return tenor_to_curve_code(curve_id, body)
+
+    first = tenor_to_curve_code(curve_id, legs[0])
+    suffixes = [f"{_CURVE_QUARTER_CODE[leg[:3]]}{leg[3:]}" for leg in legs[1:]]
+    return "-".join([first, *suffixes])
 
 
 def i_curve_instrument_to_code(name: str) -> str | None:
@@ -112,23 +154,24 @@ def i_curve_instrument_to_code(name: str) -> str | None:
     ('I Sep26-Dec26' -> 'ERU26-Z26'). Returns None for names this mapping
     doesn't cover (3MF flies are synthesized from outright legs instead —
     see historical_loader.backfill_curve_from_historical_api)."""
-    body = name.split(" ", 1)[1]
-    if "3MF" in body:
-        return None
-    if "-" not in body:
-        return tenor_to_i_curve_code(body)
-    near, far = body.split("-")
-    far_month, far_year = far[:3], far[3:]
-    return f"{tenor_to_i_curve_code(near)}-{_I_CURVE_QUARTER_CODE[far_month]}{far_year}"
+    return curve_instrument_to_code("I", name)
 
 
-def fetch_i_curve_bars(
+def fetch_vendor_bars(
     codes: list[str], interval: str = "1D", count: int = 60
 ) -> dict[str, list[tuple[datetime, float]]]:
-    """Fetch recent OHLC bars for a list of vendor codes directly from the
-    historical API (count-only window, matching the vendor's supported call
-    shape for this product). Returns {code: [(timestamp, price), ...]},
-    keyed by the exact code passed in."""
+    """Fetch recent OHLC bars for native vendor product codes.
+
+    Returns ``{code: [(timestamp, close), ...]}``, keyed by the exact code
+    passed in. This works for both I-curve codes (for example ``ERZ26-M27``)
+    and the ER3 benchmark code ``FERM26-Z26``.
+    """
+    if len(codes) > _HISTORICAL_BATCH_SIZE:
+        merged: dict[str, list[tuple[datetime, float]]] = {code: [] for code in codes}
+        for start in range(0, len(codes), _HISTORICAL_BATCH_SIZE):
+            merged.update(fetch_vendor_bars(codes[start:start + _HISTORICAL_BATCH_SIZE], interval, count))
+        return merged
+
     api_module = _get_historical_api()
     api_module._wait_for_rate_limit()
 
@@ -160,8 +203,8 @@ def fetch_i_curve_bars(
         if ts_ms in (None, "") or close in (None, ""):
             continue
         raw_code = str(item.get("product", "")).strip().upper()
-        code = raw_code[3:] if raw_code.startswith("FSR") else raw_code
-        orig = wanted.get(code)
+        stripped_code = raw_code[3:] if raw_code.startswith("FSR") else raw_code
+        orig = wanted.get(raw_code) or wanted.get(stripped_code)
         if orig is None:
             continue
         ts = datetime.fromtimestamp(int(ts_ms) / 1000, tz=timezone.utc)
@@ -170,6 +213,20 @@ def fetch_i_curve_bars(
         # 0.9751) — no PRICE_SCALE multiplication needed here.
         out[orig].append((ts, float(close)))
     return out
+
+
+def fetch_i_curve_bars(
+    codes: list[str], interval: str = "1D", count: int = 60
+) -> dict[str, list[tuple[datetime, float]]]:
+    """Backward-compatible I-curve wrapper around :func:`fetch_vendor_bars`."""
+    return fetch_vendor_bars(codes, interval, count)
+
+
+def fetch_curve_bars(
+    codes: list[str], interval: str = "1D", count: int = 60
+) -> dict[str, list[tuple[datetime, float]]]:
+    """Generic curve historical wrapper around :func:`fetch_vendor_bars`."""
+    return fetch_vendor_bars(codes, interval, count)
 
 
 def cache_to_csv(df: pd.DataFrame, output_path: str | Path) -> None:

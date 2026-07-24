@@ -128,13 +128,8 @@ class HistoricalCorrelationCache:
         return self._compute_points(ts, previous_values, current_values)
 
     def _compute_from_historical_api(self, spec: CurveSpec, pair: CorrelationPair) -> list[dict]:
-        if spec.curve_id != "I":
-            return []
         try:
-            if pair.category == "3ms":
-                previous_rows, current_rows = self._fetch_direct_pair(pair.previous, pair.current)
-            else:
-                previous_rows, current_rows = self._fetch_fly_pair(pair.previous, pair.current)
+            previous_rows, current_rows = self._fetch_direct_pair(spec.curve_id, pair.previous, pair.current)
         except Exception:  # noqa: BLE001
             log.exception("failed to fetch historical correlation source for %s/%s", pair.category, pair.current)
             return []
@@ -147,14 +142,16 @@ class HistoricalCorrelationCache:
         current_values = np.array([current_rows[t] for t in shared], dtype=np.float64)
         return self._compute_points(ts, previous_values, current_values)
 
-    def _fetch_direct_pair(self, previous: str, current: str) -> tuple[dict[float, float], dict[float, float]]:
-        from ..data.historical_api import fetch_i_curve_bars, i_curve_instrument_to_code
+    def _fetch_direct_pair(
+        self, curve_id: str, previous: str, current: str
+    ) -> tuple[dict[float, float], dict[float, float]]:
+        from ..data.historical_api import curve_instrument_to_code, fetch_curve_bars
 
-        previous_code = i_curve_instrument_to_code(previous)
-        current_code = i_curve_instrument_to_code(current)
+        previous_code = curve_instrument_to_code(curve_id, previous)
+        current_code = curve_instrument_to_code(curve_id, current)
         if previous_code is None or current_code is None:
             return {}, {}
-        bars_by_code = fetch_i_curve_bars(
+        bars_by_code = fetch_curve_bars(
             [previous_code, current_code],
             interval="1D",
             count=self._historical_fetch_count(),
@@ -165,8 +162,9 @@ class HistoricalCorrelationCache:
         )
 
     def _fetch_fly_pair(self, previous: str, current: str) -> tuple[dict[float, float], dict[float, float]]:
-        from ..data.historical_api import fetch_i_curve_bars, i_curve_instrument_to_code
+        from ..data.historical_api import curve_instrument_to_code, fetch_curve_bars
 
+        curve_id = previous.split()[0]
         previous_legs = self._fly_leg_names(previous)
         current_legs = self._fly_leg_names(current)
         if previous_legs is None or current_legs is None:
@@ -175,9 +173,9 @@ class HistoricalCorrelationCache:
         name_to_code = {
             name: code
             for name in [*previous_legs, *current_legs]
-            if (code := i_curve_instrument_to_code(name)) is not None
+            if (code := curve_instrument_to_code(curve_id, name)) is not None
         }
-        bars_by_code = fetch_i_curve_bars(
+        bars_by_code = fetch_curve_bars(
             sorted(set(name_to_code.values())),
             interval="1D",
             count=self._historical_fetch_count(),

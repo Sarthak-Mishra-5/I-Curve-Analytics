@@ -67,12 +67,33 @@ function readSavedStructure(key: string): StructureBuilderState {
   }
 }
 
+// A structure saved under an older build (before curve switching correctly
+// reset component state) can still carry a leg from a different curve, e.g.
+// "I Sep26" saved under the SR3 storage key. Drop anything that isn't one of
+// the current curve's own outrights, and if that dropped anything, the saved
+// `data`/build result is untrustworthy too — discard it so the user rebuilds.
+function sanitizeSavedStructure(saved: StructureBuilderState, outrights: string[]): StructureBuilderState {
+  const rawWeights = saved.weights ?? {};
+  const weights: Record<string, number> = {};
+  let contaminated = false;
+  for (const key of Object.keys(rawWeights)) {
+    if (outrights.includes(key)) weights[key] = rawWeights[key];
+    else contaminated = true;
+  }
+  const dataFromOtherCurve = (saved.data?.outrights ?? []).some((name) => !outrights.includes(name));
+  if (dataFromOtherCurve) contaminated = true;
+  return contaminated ? { name: saved.name, weights } : saved;
+}
+
 export default function StructureBuilder({ curveId, curveSpec, defaultName }: Props) {
   const setSelection = useICurveStore((s) => s.setCorrelationSelection);
-  const selection = useICurveStore((s) => s.correlationSelection);
+  const selection = useICurveStore((s) => s.correlationSelections[curveId] ?? null);
 
   const storageKey = useMemo(() => `rv-terminal:${curveId}:structure-builder:${defaultName}`, [curveId, defaultName]);
-  const savedState = useMemo(() => readSavedStructure(storageKey), [storageKey]);
+  const savedState = useMemo(
+    () => sanitizeSavedStructure(readSavedStructure(storageKey), curveSpec.outrights),
+    [storageKey, curveSpec.outrights],
+  );
 
   const [name, setName] = useState(savedState.name ?? defaultName);
   const [weights, setWeights] = useState<Record<string, number>>(savedState.weights ?? {});
@@ -120,6 +141,16 @@ export default function StructureBuilder({ curveId, curveSpec, defaultName }: Pr
     }
   }
 
+  function reset() {
+    if (loading) return;
+    setName(defaultName);
+    setWeights({});
+    setData(null);
+    setError(null);
+    setSelection(null, curveId);
+    localStorage.removeItem(storageKey);
+  }
+
   function selectRow(row: StructureRollRow, idx: number) {
     if (!data) return;
     const legsPrevious = data.rolls[idx]?.legs ?? {};
@@ -131,7 +162,7 @@ export default function StructureBuilder({ curveId, curveSpec, defaultName }: Pr
       current: row.current,
       legsPrevious,
       legsCurrent,
-    });
+    }, curveId);
   }
 
   const progressPct = loading ? Math.round(((stageIndex + 1) / STAGES.length) * 95) : data ? 100 : 0;
@@ -163,9 +194,25 @@ export default function StructureBuilder({ curveId, curveSpec, defaultName }: Pr
         >
           Build Structure
         </button>
+        <button
+          onClick={reset}
+          disabled={loading}
+          style={{
+            background: '#262626',
+            color: loading ? '#666666' : '#e5e5e5',
+            border: '1px solid #444444',
+            borderRadius: '4px',
+            padding: '5px 10px',
+            fontSize: '12px',
+            cursor: loading ? 'default' : 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Reset
+        </button>
       </div>
 
-      <WeightGrid outrights={curveSpec.outrights} weights={weights} onChange={setWeights} disabled={loading} />
+      <WeightGrid curveId={curveId} outrights={curveSpec.outrights} weights={weights} onChange={setWeights} disabled={loading} />
 
       {loading && (
         <div style={{ marginTop: '10px' }}>
@@ -232,6 +279,41 @@ export default function StructureBuilder({ curveId, curveSpec, defaultName }: Pr
               </table>
             </div>
           )}
+
+          <div style={{ color: '#666666', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '14px 0 6px' }}>
+            Rolling correlation vs {curveSpec.label} benchmarks
+          </div>
+          <div style={{ color: '#666666', fontSize: '10px', marginBottom: '6px' }}>
+            30 daily observations; historical comparison uses up to 1,400 daily OHLC bars.
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', minWidth: '1080px', fontSize: '12px', fontVariantNumeric: 'tabular-nums', borderCollapse: 'collapse' }}>
+              <thead style={{ color: '#666666' }}>
+                <tr style={{ borderBottom: '1px solid #262626' }}>
+                  <th style={{ textAlign: 'left', fontWeight: 'normal', padding: '4px', position: 'sticky', left: 0, background: '#111111' }}>Roll</th>
+                  {curveSpec.benchmark_names.map((benchmark) => (
+                    <th key={benchmark} style={{ textAlign: 'right', fontWeight: 'normal', padding: '4px', whiteSpace: 'nowrap' }}>{benchmark}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(data.benchmark_table ?? []).map((row) => (
+                  <tr key={row.roll} style={{ borderBottom: '1px solid #262626' }}>
+                    <td style={{ padding: '4px', color: '#e5e5e5', position: 'sticky', left: 0, background: '#111111', whiteSpace: 'nowrap' }}>{shortTenor(row.roll)} {data.name}</td>
+                    {curveSpec.benchmark_names.map((benchmark) => {
+                      const cell = row.benchmarks[benchmark];
+                      const corr = cell?.correlation ?? null;
+                      return (
+                        <td key={benchmark} title={cell?.date ? `${cell.n} daily observations through ${cell.date}` : 'No overlapping history'} style={{ padding: '4px', textAlign: 'right', color: corrColor(corr) }}>
+                          {corr == null ? '—' : corr.toFixed(2)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </Panel>

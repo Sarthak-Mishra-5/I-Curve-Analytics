@@ -27,6 +27,7 @@ LOWESS_FRAC = 0.3
 CORR_WINDOW_OBS = 30
 CORR_MIN_OBS = 10
 CORR_HISTORY_DAYS = 180
+BENCHMARK_HISTORY_COUNT = 1400
 
 
 class StructureError(ValueError):
@@ -205,7 +206,7 @@ def row_stats(
 
 
 def build_custom_structure(
-    store: CurveHistoryStore, outrights: list[str], name: str, weights: dict[str, int]
+    store: CurveHistoryStore, outrights: list[str], name: str, weights: dict[str, int], curve_id: str = ""
 ) -> dict:
     legs = parse_weights(outrights, weights)
     rolls = roll_structures(outrights, legs)
@@ -217,6 +218,7 @@ def build_custom_structure(
         row_stats(*series_by_roll[i - 1], *series_by_roll[i], rolls[i - 1].label, rolls[i].label)
         for i in range(1, len(rolls))
     ]
+    benchmark_table = build_benchmark_correlations(store, rolls, curve_id)
 
     return {
         "name": name,
@@ -224,6 +226,7 @@ def build_custom_structure(
         "formula": dense_formula(outrights, weights),
         "rolls": [{"label": s.label, "legs": dict(s.legs)} for s in rolls],
         "table": table,
+        "benchmark_table": benchmark_table,
         "generated_at": _iso(datetime.now(timezone.utc).timestamp()),
     }
 
@@ -366,19 +369,96 @@ def _fetch_outright_history(names: list[str], count: int) -> dict[str, dict[floa
     on-disk/in-memory retention is capped at CURVE_HISTORY_WINDOW_DAYS (30),
     far short of a 6-month chart. Returns {name: {epoch_sec: price}}; missing
     names on error/lookup-failure are simply absent (best-effort)."""
-    from ..data.historical_api import fetch_i_curve_bars, i_curve_instrument_to_code
+    from ..data.historical_api import curve_instrument_to_code, fetch_curve_bars
 
-    name_to_code = {name: code for name in names if (code := i_curve_instrument_to_code(name)) is not None}
+    curve_id = names[0].split()[0] if names else ""
+    name_to_code = {
+        name: code
+        for name in names
+        if (code := curve_instrument_to_code(curve_id, name)) is not None
+    }
     if not name_to_code:
         return {}
     try:
-        bars_by_code = fetch_i_curve_bars(sorted(set(name_to_code.values())), interval="1D", count=count)
+        bars_by_code = fetch_curve_bars(sorted(set(name_to_code.values())), interval="1D", count=count)
     except Exception:  # noqa: BLE001
         return {}
     return {
         name: {ts.timestamp(): price for ts, price in bars_by_code.get(code, [])}
         for name, code in name_to_code.items()
     }
+
+
+def _fetch_benchmark_history(curve_id: str, benchmark_names: list[str]) -> dict[str, dict[float, float]]:
+    """Fetch this curve's configured benchmark structures using their native
+    vendor product codes. A name with an explicit historical-code override
+    (e.g. the ER3 anchor used for the "I" curve, which can't be derived from
+    I outrights) uses that code; every other benchmark derives its code from
+    the requesting curve's own naming convention (SA3/SO3/SR3 native spreads)."""
+    from ..config import STRUCTURE_BENCHMARK_HISTORICAL_CODES
+    from ..data.historical_api import curve_instrument_to_code, fetch_curve_bars
+
+    name_to_code: dict[str, str] = {}
+    for name in benchmark_names:
+        code = STRUCTURE_BENCHMARK_HISTORICAL_CODES.get(name) or curve_instrument_to_code(curve_id, name)
+        if code is not None:
+            name_to_code[name] = code
+    if not name_to_code:
+        return {}
+    try:
+        bars_by_code = fetch_curve_bars(
+            sorted(set(name_to_code.values())), interval="1D", count=BENCHMARK_HISTORY_COUNT,
+        )
+    except Exception:  # noqa: BLE001
+        return {}
+    return {
+        name: {ts.timestamp(): price for ts, price in bars_by_code.get(code, [])}
+        for name, code in name_to_code.items()
+    }
+
+
+def build_benchmark_correlations(store: CurveHistoryStore, rolls: list[Structure], curve_id: str) -> list[dict]:
+    """Latest daily rolling correlation for every generated formula roll
+    against this curve's own configured benchmark structures.
+
+    Formula rolls are rebuilt from 1,400 daily OHLC observations; benchmark
+    levels come from the curve's native spread codes (or an explicit override
+    for the "I" curve's ER3 anchor). The output deliberately retains
+    unavailable cells as ``None`` so one missing vendor series never prevents
+    the rest of the matrix from being shown.
+    """
+    from ..config import CURVE_BENCHMARK_NAMES
+
+    benchmark_names = CURVE_BENCHMARK_NAMES.get(curve_id, [])
+    names = sorted({name for roll in rolls for name, _ in roll.legs})
+    formula_bars = _fetch_outright_history(names, BENCHMARK_HISTORY_COUNT)
+    benchmark_bars = _fetch_benchmark_history(curve_id, benchmark_names)
+    output: list[dict] = []
+
+    for roll in rolls:
+        formula_ts, formula_values = _weighted_series_from_bars(formula_bars, roll.legs)
+        cells: dict[str, dict] = {}
+        for benchmark, values_by_ts in benchmark_bars.items():
+            benchmark_ts = np.array(sorted(values_by_ts), dtype=np.float64)
+            benchmark_values = np.array([values_by_ts[t] for t in benchmark_ts], dtype=np.float64)
+            ts, left, right = _paired(formula_ts, formula_values, benchmark_ts, benchmark_values)
+            points = rolling_correlation_points(ts, left, right)
+            latest = points[-1] if points else None
+            cells[benchmark] = {
+                "correlation": latest["correlation"] if latest else None,
+                "n": latest["n"] if latest else int(ts.size),
+                "date": latest["date"] if latest else None,
+            }
+        # Preserve all configured columns even if the API returned no bars.
+        for benchmark in benchmark_names:
+            cells.setdefault(benchmark, {"correlation": None, "n": 0, "date": None})
+        _, live_values = build_series(store, roll.legs)
+        output.append({
+            "roll": roll.label,
+            "live_price": float(live_values[-1]) if live_values.size else None,
+            "benchmarks": cells,
+        })
+    return output
 
 
 def _weighted_series_from_bars(

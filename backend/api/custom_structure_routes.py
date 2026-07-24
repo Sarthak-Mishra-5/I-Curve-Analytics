@@ -51,7 +51,7 @@ async def custom_structure(curve_id: str, body: CustomStructureRequest) -> dict:
         raise HTTPException(status_code=404, detail=f"unknown curve '{curve_id}'")
 
     try:
-        return build_custom_structure(store, spec.outrights, body.name, body.weights)
+        return build_custom_structure(store, spec.outrights, body.name, body.weights, curve_id=spec.curve_id)
     except StructureError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

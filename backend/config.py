@@ -55,6 +55,39 @@ SUBSCRIBED_CONTRACTS_SA3 = [
     ("SA3 Jun29", "15117311257991458693"),
     ("SA3 Sep29", "6558853516677562258"),
     ("SA3 Dec29", "18071176284543341830"),
+    ("SA3 Jun26-Sep26", "15283921549582549418"),
+    ("SA3 Sep26-Dec26", "13131760473352420914"),
+    ("SA3 Dec26-Mar27", "16259004007279004825"),
+    ("SA3 Mar27-Jun27", "10670967411415013508"),
+    ("SA3 Jun27-Sep27", "8481006698682872844"),
+    ("SA3 Sep27-Dec27", "13994529427492477618"),
+    ("SA3 Dec27-Mar28", "3043002966821789637"),
+    ("SA3 Mar28-Jun28", "13713228640041917354"),
+    ("SA3 Jun28-Sep28", "11660090515889192293"),
+    ("SA3 Sep28-Dec28", "18011047185126124299"),
+    ("SA3 Dec28-Mar29", "6640022503720765124"),
+    ("SA3 Mar29-Jun29", "8070827777609927931"),
+    ("SA3 Jun29-Sep29", "2803926872344659289"),
+    
+    ("SA3 Jun26 3MF", "17750884815534850050"),
+    ("SA3 Sep26 3MF", "9203369517049151626"),
+    ("SA3 Dec26 3MF", "1264552906206314163"),
+    ("SA3 Mar27 3MF", "8145974784807434202"),
+    ("SA3 Jun27 3MF", "15767186777862059219"),
+    ("SA3 Sep27 3MF", "14583120225367159191"),
+    ("SA3 Dec27 3MF", "18363959007972907935"),
+    ("SA3 Mar28 3MF", "13244091675404167818"),
+    ("SA3 Jun28 3MF", "12675321651830767337"),
+    ("SA3 Sep28 3MF", "11714159330713063611"),
+    ("SA3 Dec28 3MF", "10865780625514236831"),
+    
+    
+    ("SA3 Jun26-Dec26", "929766345680495730"),
+    ("SA3 Dec26-Jun27", "544031855385962372"),
+    ("SA3 Jun27-Dec27", "15460592429251930449"),
+    ("SA3 Dec26-Dec27", "6170461984881950814"),
+    ("SA3 Dec27-Dec28", "10025362995233882825"),
+   
 ]
 
 SUBSCRIBED_CONTRACTS_ER3 = [
@@ -128,7 +161,159 @@ SUBSCRIBED_CONTRACTS_I = [
     ("I Dec29 3MF", "13954489903467424437"),  
 ]
 
-ALL_CONTRACTS = SUBSCRIBED_CONTRACTS_SA3 + SUBSCRIBED_CONTRACTS_ER3 + SUBSCRIBED_CONTRACTS_I
+SUBSCRIBED_CONTRACTS_SO3 = [
+    ("SO3 Jun26", "17388498933531365606"),
+    ("SO3 Sep26", "14330867541177216896"),
+    ("SO3 Dec26", "2929215027186538641"),
+    ("SO3 Mar27", "12777480240935901350"),
+    ("SO3 Jun27", "17489439929274896309"),
+    ("SO3 Sep27", "13124315370012665646"),
+    ("SO3 Dec27", "6883681751251454284"),
+    ("SO3 Mar28", "4771138968527992296"),
+    ("SO3 Jun28", "1778338967582843813"),
+    ("SO3 Sep28", "13553073652848841644"),
+    ("SO3 Dec28", "12802673068039550141"),
+    ("SO3 Mar29", "14192579889497853292"),
+    ("SO3 Jun29", "13656323332417174028"),
+    ("SO3 Sep29", "15474919503937410045"),
+    ("SO3 Dec29", "16444027228601244617"),
+    ("SO3 Sep26-Dec26", "7303136447654813042"),
+    ("SO3 Dec26-Mar27", "12309733990612520016"),
+    ("SO3 Mar27-Jun27", "15544382300253741038"),
+    ("SO3 Jun27-Sep27", "11299061421331401466"),
+    ("SO3 Sep27-Dec27", "9155336585209401751"),
+    ("SO3 Dec27-Mar28", "16970928175331468341"),
+    ("SO3 Mar28-Jun28", "2382996932605719455"),
+    ("SO3 Jun28-Sep28", "16233147676670141758"),
+    ("SO3 Sep28-Dec28", "5371142640950304887"),
+    ("SO3 Dec28-Mar29", "17931114822400781230"),
+    ("SO3 Mar29-Jun29", "5724848222879140096"),
+    ("SO3 Jun29-Sep29", "970533405473342638"),
+    ("SO3 Sep26 3MF", "5802081850116781229"),
+    ("SO3 Dec26 3MF", "2386584141984269812"),
+    ("SO3 Mar27 3MF", "10370433218461137045"),
+    ("SO3 Jun27 3MF", "11389244677622334461"),
+    ("SO3 Sep27 3MF", "16466421796372728560"),
+    ("SO3 Dec27 3MF", "18237649840534290678"),
+    ("SO3 Mar28 3MF", "4750893854772769278"),
+    ("SO3 Jun28 3MF", "4531131095539811721"),
+    ("SO3 Sep28 3MF", "5598951019664449136"),
+    ("SO3 Dec28 3MF", "16168741156696492968"),
+    ("SO3 Mar29 3MF", "9980713530874556730"),
+    ("SO3 Jun29 3MF", "2887552610150425375"),
+    ("SO3 Sep29 3MF", "11995116076595849118"),
+    ("SO3 Dec29 3MF", "16675935867207389425"),
+    ("SO3 Jun26-Dec26", "7606668504795640070"),
+    ("SO3 Dec26-Jun27", "653505071096868951"),
+    ("SO3 Jun27-Dec27", "18214479121426619754"),
+    ("SO3 Dec26-Dec27", "17043499150738109556"),
+    ("SO3 Dec27-Dec28", "5003331368693768291"),
+    ("SO3 Dec28-Dec29", "3096584709959532749"),
+    ("SO3 Dec29-Dec30", "8667256497296404623"),
+]
+
+SUBSCRIBED_CONTRACTS_SR3 = [
+    ("SR3 Jun26", "2518875037886751798"),
+    ("SR3 Sep26", "10056698436755136015"),
+    ("SR3 Dec26", "3761391845186607269"),
+    ("SR3 Mar27", "8786029629332899618"),
+    ("SR3 Jun27", "6064266935547558467"),
+    ("SR3 Sep27", "10582686653072545408"),
+    ("SR3 Dec27", "17925935412019565973"),
+    ("SR3 Mar28", "3822227243959035490"),
+    ("SR3 Jun28", "12741923103719175711"),
+    ("SR3 Sep28", "16673841811510079166"),
+    ("SR3 Dec28", "7359239446017790966"),
+    ("SR3 Mar29", "4211986922965728750"),
+    ("SR3 Jun29", "11432813735419224277"),
+    ("SR3 Sep29", "9909662404632894188"),
+    ("SR3 Dec29", "12350987571259131621"),
+    ("SR3 Sep26-Dec26", "10538177603741347940"),
+    ("SR3 Dec26-Mar27", "15292306285496321895"),
+    ("SR3 Mar27-Jun27", "9440282357390122061"),
+    ("SR3 Jun27-Sep27", "1074193527039132483"),
+    ("SR3 Sep27-Dec27", "5027144285602730053"),
+    ("SR3 Dec27-Mar28", "5004080736027242281"),
+    ("SR3 Mar28-Jun28", "15781040958777106512"),
+    ("SR3 Jun28-Sep28", "3590265153926145762"),
+    ("SR3 Sep28-Dec28", "6016657214449980661"),
+    ("SR3 Dec28-Mar29", "14572902716380660001"),
+    ("SR3 Mar29-Jun29", "10503523860245957343"),
+    ("SR3 Jun29-Sep29", "15887690782750499864"),
+    ("SR3 Sep26 3MF", "8274956702579047283"),
+    ("SR3 Dec26 3MF", "1694217178440827148"),
+    ("SR3 Mar27 3MF", "12864912356840246022"),
+    ("SR3 Jun27 3MF", "11057434857239003809"),
+    ("SR3 Sep27 3MF", "4246133136712339533"),
+    ("SR3 Dec27 3MF", "2221718888031776067"),
+    ("SR3 Mar28 3MF", "12412265760269376373"),
+    ("SR3 Jun28 3MF", "14055147045902256771"),
+    ("SR3 Sep28 3MF", "6817092586648247115"),
+    ("SR3 Dec28 3MF", "17576025199489301908"),
+    ("SR3 Mar29 3MF", "15975147523134469997"),
+    ("SR3 Jun29 3MF", "10079344912650163936"),
+    ("SR3 Sep29 3MF", "439275282675154222"),
+    ("SR3 Dec29 3MF", "9665346556737164751"),
+    ("SR3 Jun26-Dec26", "16287914367671165382"),
+    ("SR3 Dec26-Jun27", "6229851979892159244"),
+    ("SR3 Jun27-Dec27", "7303293106916000883"),
+    ("SR3 Dec26-Dec27", "2250948975266807625"),
+    ("SR3 Dec27-Dec28", "16177072337967459840"),
+    ("SR3 Dec28-Dec29", "10171050261511673387"),
+    ("SR3 Dec29-Dec30", "6603557660396962073"),
+]
+
+
+
+# Benchmark structures used to compare every auto-rolled custom formula.
+# The historical codes are the vendor's native OHLC symbols, whereas the IDs
+# are the Lightstreamer InstrumentIds used for live prices.
+STRUCTURE_CORRELATION_BENCHMARKS = [
+    ("ER3 Jun26-Dec26", "7049197886364910856", "FERM26-Z26"),
+    ("I Dec26-Jun27", "9786540273641429331", "ERZ26-M27"),
+    ("I Jun27-Dec27", "18266552713857873693", "ERM27-Z27"),
+    ("I Dec26-Dec27", "4124494090517670240", "ERZ26-Z27"),
+    ("I Dec27-Dec28", "6428533131735688129", "ERZ27-Z28"),
+    ("I Dec28-Dec29", "13745741400540452914", "ERZ28-Z29"),
+    ("I Dec29-Dec30", "6906502738573927788", "ERZ29-Z30"),
+    ("I Dec30-Dec31", "14464341784003411666", "ERZ30-Z31"),
+]
+
+STRUCTURE_BENCHMARK_HISTORICAL_CODES = {
+    name: historical_code
+    for name, _, historical_code in STRUCTURE_CORRELATION_BENCHMARKS
+}
+
+# Per-curve benchmark columns for the structure-analysis correlation table.
+# "I" keeps the original ER3-anchored benchmark set; SA3/SO3/SR3 compare
+# against their own native long-dated calendar spreads instead.
+CURVE_BENCHMARK_NAMES: dict[str, list[str]] = {
+    "I": [name for name, _, _ in STRUCTURE_CORRELATION_BENCHMARKS],
+    "SA3": [
+        "SA3 Jun26-Dec26", "SA3 Dec26-Jun27", "SA3 Jun27-Dec27",
+        "SA3 Dec26-Dec27", "SA3 Dec27-Dec28",
+    ],
+    "SO3": [
+        "SO3 Jun26-Dec26", "SO3 Dec26-Jun27", "SO3 Jun27-Dec27",
+        "SO3 Dec26-Dec27", "SO3 Dec27-Dec28", "SO3 Dec28-Dec29", "SO3 Dec29-Dec30",
+    ],
+    "SR3": [
+        "SR3 Jun26-Dec26", "SR3 Dec26-Jun27", "SR3 Jun27-Dec27",
+        "SR3 Dec26-Dec27", "SR3 Dec27-Dec28", "SR3 Dec28-Dec29", "SR3 Dec29-Dec30",
+    ],
+}
+
+# A few I benchmarks are already subscribed as ordinary I-curve structures.
+# Deduplicate those exact tuples while retaining the dedicated ER3 benchmark.
+_BENCHMARK_LIVE_CONTRACTS = [(name, instrument_id) for name, instrument_id, _ in STRUCTURE_CORRELATION_BENCHMARKS]
+ALL_CONTRACTS = list(dict.fromkeys(
+    SUBSCRIBED_CONTRACTS_SA3
+    + SUBSCRIBED_CONTRACTS_ER3
+    + SUBSCRIBED_CONTRACTS_I
+    + SUBSCRIBED_CONTRACTS_SO3
+    + SUBSCRIBED_CONTRACTS_SR3
+    + _BENCHMARK_LIVE_CONTRACTS
+))
 
 # Tenor ordering. Quarter codes H/M/U/Z = Mar/Jun/Sep/Dec.
 TENOR_ORDER = [
@@ -149,6 +334,8 @@ def _tenor_key(name: str) -> int:
 
 SA3_NAMES = sorted([n for n, _ in SUBSCRIBED_CONTRACTS_SA3], key=_tenor_key)
 ER3_NAMES = sorted([n for n, _ in SUBSCRIBED_CONTRACTS_ER3], key=_tenor_key)
+SO3_NAMES = sorted([n for n, _ in SUBSCRIBED_CONTRACTS_SO3], key=_tenor_key)
+SR3_NAMES = sorted([n for n, _ in SUBSCRIBED_CONTRACTS_SR3], key=_tenor_key)
 
 # --- "I" curve name lists ---------------------------------------------------
 # SUBSCRIBED_CONTRACTS_I is already laid out in chronological blocks:
@@ -190,14 +377,41 @@ def _is_expired(name: str, as_of: date) -> bool:
 
 
 # Evaluated once at process start — correct as of today, and self-corrects on
-# each restart as more quarterly contracts expire. Scoped to the "I" curve
-# only; SA3/ER3 use the same static-list pattern but aren't filtered here.
+# each restart as more quarterly contracts expire.
 _TODAY = datetime.now(timezone.utc).date()
 
 I_OUTRIGHT_NAMES = [n for n, _ in SUBSCRIBED_CONTRACTS_I if "-" not in n and "3MF" not in n and not _is_expired(n, _TODAY)]
 I_3MS_NAMES = [n for n, _ in SUBSCRIBED_CONTRACTS_I if _spread_width(n) == 1 and not _is_expired(n, _TODAY)]
 I_6MS_NAMES = [n for n, _ in SUBSCRIBED_CONTRACTS_I if _spread_width(n) == 2 and not _is_expired(n, _TODAY)]
 I_3MF_NAMES = [n for n, _ in SUBSCRIBED_CONTRACTS_I if "3MF" in n and not _is_expired(n, _TODAY)]
+
+
+def _curve_outright_names(contracts: list[tuple[str, str]]) -> list[str]:
+    return [n for n, _ in contracts if "-" not in n and "3MF" not in n and not _is_expired(n, _TODAY)]
+
+
+def _curve_spread_names(contracts: list[tuple[str, str]], width: int) -> list[str]:
+    return [n for n, _ in contracts if _spread_width(n) == width and not _is_expired(n, _TODAY)]
+
+
+def _curve_fly_names(contracts: list[tuple[str, str]]) -> list[str]:
+    return [n for n, _ in contracts if "3MF" in n and not _is_expired(n, _TODAY)]
+
+
+SA3_OUTRIGHT_NAMES = _curve_outright_names(SUBSCRIBED_CONTRACTS_SA3)
+SA3_3MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SA3, 1)
+SA3_6MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SA3, 2)
+SA3_3MF_NAMES = _curve_fly_names(SUBSCRIBED_CONTRACTS_SA3)
+
+SO3_OUTRIGHT_NAMES = _curve_outright_names(SUBSCRIBED_CONTRACTS_SO3)
+SO3_3MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SO3, 1)
+SO3_6MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SO3, 2)
+SO3_3MF_NAMES = _curve_fly_names(SUBSCRIBED_CONTRACTS_SO3)
+
+SR3_OUTRIGHT_NAMES = _curve_outright_names(SUBSCRIBED_CONTRACTS_SR3)
+SR3_3MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SR3, 1)
+SR3_6MS_NAMES = _curve_spread_names(SUBSCRIBED_CONTRACTS_SR3, 2)
+SR3_3MF_NAMES = _curve_fly_names(SUBSCRIBED_CONTRACTS_SR3)
 
 # Rolling calendar-time curve-history store + stats scheduler settings.
 CURVE_HISTORY_BAR_SEC = 60             # bar resolution for the persistent history store
@@ -229,9 +443,13 @@ DV01_PER_TICK = {
     "SA3": 12.50,
     "ER3": 7,
     "I": 14,
+    "SO3": 12.50,
+    "SR3": 12.50,
 }
 TICK_SIZE = {
     "SA3": 0.005,
     "ER3": 0.0025,
     "I": 0.005,
+    "SO3": 0.005,
+    "SR3": 0.005,
 }

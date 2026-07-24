@@ -4,6 +4,7 @@ import { erLabel } from '../icurve/format';
 export const MAX_LEGS = 8;
 
 interface Props {
+  curveId?: string;
   outrights: string[];
   weights: Record<string, number>;
   onChange: (weights: Record<string, number>) => void;
@@ -18,7 +19,7 @@ export function nonZeroLegCount(weights: Record<string, number>): number {
 // Integers only (optionally signed), or empty while the user is mid-edit.
 const INT_PATTERN = /^-?\d*$/;
 
-export default function WeightGrid({ outrights, weights, onChange, disabled, labelForName }: Props) {
+export default function WeightGrid({ curveId = 'I', outrights, weights, onChange, disabled, labelForName }: Props) {
   // Raw keystroke text per cell, tracked separately from the committed
   // `weights` map: "-" and "-0" don't parse to a stored weight yet, but a
   // fully-controlled input bound straight to `weights` would snap back to
@@ -31,7 +32,13 @@ export default function WeightGrid({ outrights, weights, onChange, disabled, lab
     if (!INT_PATTERN.test(raw)) return;
     setText((t) => ({ ...t, [name]: raw }));
 
-    const next = { ...weights };
+    // Filter to the current curve's outrights so a leg carried over from a
+    // previously viewed curve (e.g. stale state on a curve switch) can never
+    // ride along in the weights sent to the backend.
+    const next: Record<string, number> = {};
+    for (const key of outrights) {
+      if (weights[key] != null) next[key] = weights[key];
+    }
     const parsed = raw === '' || raw === '-' ? NaN : parseInt(raw, 10);
     if (!Number.isFinite(parsed) || parsed === 0) delete next[name];
     else next[name] = parsed;
@@ -52,7 +59,7 @@ export default function WeightGrid({ outrights, weights, onChange, disabled, lab
           return (
             <div key={name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '52px' }}>
               <span style={{ color: '#666666', fontSize: '10px', marginBottom: '2px' }}>
-                {labelForName ? labelForName(name, outrights) : erLabel(outrights, name)}
+                {labelForName ? labelForName(name, outrights) : erLabel(outrights, name, curveId)}
               </span>
               <input
                 inputMode="numeric"

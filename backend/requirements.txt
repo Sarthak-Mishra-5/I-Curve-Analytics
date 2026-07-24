@@ -2,7 +2,8 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
 websockets==13.1
-numpy==2.1.1
+# numba==0.60.0 requires NumPy < 2.1.
+numpy==2.0.2
 pandas==2.2.3
 polars==1.8.2
 scipy==1.14.1

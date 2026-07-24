@@ -24,6 +24,8 @@ from ..config import (
     CURVE_HISTORY_WINDOW_DAYS,
     ER3_NAMES,
     SA3_NAMES,
+    SO3_NAMES,
+    SR3_NAMES,
 )
 from ..curves.registry import CURVES, INSTRUMENT_TO_CURVE
 from ..streaming.lightstreamer_client import LightstreamerStreamer
@@ -108,16 +110,15 @@ async def lifespan(app: FastAPI):
             bar_sec=CURVE_HISTORY_BAR_SEC,
             window_days=CURVE_HISTORY_WINDOW_DAYS,
         )
-        if curve_id == "I":
-            try:
-                from ..data.historical_loader import backfill_curve_from_historical_api
+        try:
+            from ..data.historical_loader import backfill_curve_from_historical_api
 
-                written = backfill_curve_from_historical_api(store, spec)
-                log.info("curve history backfill for %s: seeded %d instruments", curve_id, len(written))
-            except Exception:  # noqa: BLE001
-                log.exception(
-                    "curve history backfill failed for %s (continuing with live-only history)", curve_id
-                )
+            written = backfill_curve_from_historical_api(store, spec)
+            log.info("curve history backfill for %s: seeded %d instruments", curve_id, len(written))
+        except Exception:  # noqa: BLE001
+            log.exception(
+                "curve history backfill failed for %s (continuing with live-only history)", curve_id
+            )
         engine = CurveStatsEngine(spec, store, ctx.hub.broadcast)
         ctx.curve_histories[curve_id] = store
         ctx.curve_stats_engines[curve_id] = engine
@@ -168,7 +169,7 @@ async def health():
 
 @app.get("/api/contracts")
 async def contracts():
-    return {"SA3": SA3_NAMES, "ER3": ER3_NAMES}
+    return {"SA3": SA3_NAMES, "ER3": ER3_NAMES, "I": CURVES["I"].outrights, "SR3": SR3_NAMES, "SO3": SO3_NAMES}
 
 
 @app.get("/api/quotes")
@@ -196,7 +197,13 @@ async def ws_endpoint(ws: WebSocket):
             "quotes": ctx.state.snapshot_quotes(),
             "analytics": ctx.analytics.last_payload or {},
             "alerts": list(ctx.alerts.recent),
-            "contracts": {"SA3": SA3_NAMES, "ER3": ER3_NAMES},
+            "contracts": {
+                "SA3": SA3_NAMES,
+                "ER3": ER3_NAMES,
+                "I": CURVES["I"].outrights,
+                "SR3": SR3_NAMES,
+                "SO3": SO3_NAMES,
+            },
             "stream_status": ctx.streamer.status,
         }})
         while True:

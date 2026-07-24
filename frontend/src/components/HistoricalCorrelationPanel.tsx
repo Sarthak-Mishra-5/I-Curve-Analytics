@@ -17,7 +17,7 @@ interface Props {
 }
 
 function shortName(name: string) {
-  return name.replace(/^I\s+/, '').replace(/\s+3MF$/, ' 3MF');
+  return name.replace(/^[A-Z0-9]+\s+/, '').replace(/\s+3MF$/, ' 3MF');
 }
 
 function currentOptions(curveSpec: CurveSpecDTO, category: Category) {
@@ -26,7 +26,7 @@ function currentOptions(curveSpec: CurveSpecDTO, category: Category) {
 }
 
 export default function HistoricalCorrelationPanel({ curveId, curveSpec }: Props) {
-  const selection = useICurveStore((s) => s.correlationSelection);
+  const selection = useICurveStore((s) => s.correlationSelections[curveId] ?? null);
   const setSelection = useICurveStore((s) => s.setCorrelationSelection);
 
   const [category, setCategory] = useState<Category>('3ms');
@@ -113,7 +113,7 @@ export default function HistoricalCorrelationPanel({ curveId, curveSpec }: Props
             <button
               key={c}
               disabled={isCustom}
-              onClick={() => setSelection({ kind: 'builtin', category: c, current: currentOptions(curveSpec, c)[0] ?? '' })}
+              onClick={() => setSelection({ kind: 'builtin', category: c, current: currentOptions(curveSpec, c)[0] ?? '' }, curveId)}
               style={{
                 background: !isCustom && category === c ? '#262626' : '#141414',
                 color: !isCustom && category === c ? '#e5e5e5' : '#888888',
@@ -136,7 +136,7 @@ export default function HistoricalCorrelationPanel({ curveId, curveSpec }: Props
         ) : (
           <select
             value={current}
-            onChange={(e) => setSelection({ kind: 'builtin', category, current: e.target.value })}
+            onChange={(e) => setSelection({ kind: 'builtin', category, current: e.target.value }, curveId)}
             style={{ background: '#0a0a0a', color: '#e5e5e5', border: '1px solid #333333', borderRadius: '4px', padding: '5px 8px', minWidth: 0 }}
           >
             {options.map((name) => (

@@ -1,7 +1,6 @@
 """Load and integrate historical OHLC data into MarketState for backtesting."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -138,7 +137,7 @@ def backfill_from_csv(state: MarketState, csv_path: str | Path, product_hint: st
 
 
 def backfill_curve_from_historical_api(
-    store: CurveHistoryStore, spec: CurveSpec, interval: str = "1D", count: int = 90
+    store: CurveHistoryStore, spec: CurveSpec, interval: str = "1D", count: int = 150
 ) -> dict[str, int]:
     """Best-effort startup backfill for a curve's outrights/3ms/6ms from the
     historical API. Flies (3MF) aren't fetched directly — the vendor's fly
@@ -150,52 +149,27 @@ def backfill_curve_from_historical_api(
     which should treat this as best-effort and continue with live-only
     history on failure). Returns {instrument_name: bars_written}.
     """
-    from ..config import TENOR_ORDER
-    from .historical_api import fetch_i_curve_bars, i_curve_instrument_to_code
+    from .historical_api import curve_instrument_to_code, fetch_curve_bars
 
-    directly_fetchable = [*spec.outrights, *spec.three_month_spreads, *spec.six_month_spreads]
+    directly_fetchable = [
+        *spec.outrights,
+        *spec.three_month_spreads,
+        *spec.six_month_spreads,
+        *spec.flies_3m,
+    ]
     name_to_code = {
         name: code
         for name in directly_fetchable
-        if (code := i_curve_instrument_to_code(name)) is not None
+        if (code := curve_instrument_to_code(spec.curve_id, name)) is not None
     }
 
-    bars_by_code = fetch_i_curve_bars(list(name_to_code.values()), interval=interval, count=count)
+    bars_by_code = fetch_curve_bars(list(name_to_code.values()), interval=interval, count=count)
 
     written: dict[str, int] = {}
-    outright_bars: dict[str, dict[float, float]] = {}
     for name, code in name_to_code.items():
         rows = bars_by_code.get(code, [])
         n = store.seed_from(name, rows)
         if n:
             written[name] = n
-        if name in spec.outrights:
-            outright_bars[name] = {ts.timestamp(): price for ts, price in rows}
-
-    for fly_name in spec.flies_3m:
-        parts = fly_name.split()  # "I Sep26 3MF" -> ["I", "Sep26", "3MF"]
-        tenor = parts[1] if len(parts) > 1 else ""
-        if tenor not in TENOR_ORDER:
-            continue
-        idx = TENOR_ORDER.index(tenor)
-        if idx + 2 >= len(TENOR_ORDER):
-            continue
-        prefix = fly_name.split()[0]
-        leg_bars = [outright_bars.get(f"{prefix} {TENOR_ORDER[idx + k]}") for k in range(3)]
-        if any(b is None for b in leg_bars):
-            continue
-        shared = sorted(set(leg_bars[0]) & set(leg_bars[1]) & set(leg_bars[2]))
-        if not shared:
-            continue
-        rows = [
-            (
-                datetime.fromtimestamp(t, tz=timezone.utc),
-                leg_bars[0][t] - 2 * leg_bars[1][t] + leg_bars[2][t],
-            )
-            for t in shared
-        ]
-        n = store.seed_from(fly_name, rows)
-        if n:
-            written[fly_name] = n
 
     return written

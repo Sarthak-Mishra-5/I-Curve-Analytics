@@ -57,9 +57,35 @@ function readSavedState(key: string): ComparisonLabState {
   }
 }
 
+function sanitizeWeights(weights: Record<string, number> | undefined, outrights: string[]): Record<string, number> {
+  const clean: Record<string, number> = {};
+  for (const key of Object.keys(weights ?? {})) {
+    if (outrights.includes(key)) clean[key] = weights![key];
+  }
+  return clean;
+}
+
+// A comparison saved under an older build (before curve switching correctly
+// reset component state) can still carry a leg from a different curve, e.g.
+// "I Sep26" saved under the SR3 storage key. Drop anything that isn't one of
+// the current curve's own outrights; if either side got contaminated, the
+// saved comparison result is untrustworthy too — discard it so the user reruns.
+function sanitizeSavedState(saved: ComparisonLabState, outrights: string[]): ComparisonLabState {
+  const weightsA = sanitizeWeights(saved.weightsA, outrights);
+  const weightsB = sanitizeWeights(saved.weightsB, outrights);
+  const contaminated =
+    Object.keys(saved.weightsA ?? {}).length !== Object.keys(weightsA).length ||
+    Object.keys(saved.weightsB ?? {}).length !== Object.keys(weightsB).length;
+  if (!contaminated) return saved;
+  return { nameA: saved.nameA, nameB: saved.nameB, weightsA, weightsB, startDate: saved.startDate, endDate: saved.endDate };
+}
+
 export default function ComparisonLab({ curveId, curveSpec }: Props) {
   const storageKey = useMemo(() => `rv-terminal:${curveId}:structure-comparison-lab`, [curveId]);
-  const savedState = useMemo(() => readSavedState(storageKey), [storageKey]);
+  const savedState = useMemo(
+    () => sanitizeSavedState(readSavedState(storageKey), curveSpec.outrights),
+    [storageKey, curveSpec.outrights],
+  );
 
   const [nameA, setNameA] = useState(savedState.nameA ?? 'Structure A');
   const [nameB, setNameB] = useState(savedState.nameB ?? 'Structure B');
@@ -115,6 +141,21 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
     }
   }
 
+  function reset() {
+    if (loading) return;
+    setNameA('Structure A');
+    setNameB('Structure B');
+    setWeightsA({});
+    setWeightsB({});
+    setStartDate(isoDateOffset(180));
+    setEndDate(new Date().toISOString().slice(0, 10));
+    setResult(null);
+    setPoints([]);
+    setPricePoints([]);
+    setError(null);
+    localStorage.removeItem(storageKey);
+  }
+
   return (
     <Panel title="Structure Comparison Lab" subtitle="exact structures, no rolling">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', marginBottom: '10px' }}>
@@ -166,23 +207,39 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
         </label>
       </div>
 
-      <button
-        onClick={compare}
-        disabled={!canCompare}
-        style={{
-          background: canCompare ? '#00ff88' : '#262626',
-          color: canCompare ? '#0a0a0a' : '#666666',
-          border: 0,
-          borderRadius: '4px',
-          padding: '6px 14px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          cursor: canCompare ? 'pointer' : 'default',
-          marginBottom: '10px',
-        }}
-      >
-        Compare
-      </button>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+        <button
+          onClick={compare}
+          disabled={!canCompare}
+          style={{
+            background: canCompare ? '#00ff88' : '#262626',
+            color: canCompare ? '#0a0a0a' : '#666666',
+            border: 0,
+            borderRadius: '4px',
+            padding: '6px 14px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            cursor: canCompare ? 'pointer' : 'default',
+          }}
+        >
+          Compare
+        </button>
+        <button
+          onClick={reset}
+          disabled={loading}
+          style={{
+            background: '#262626',
+            color: loading ? '#666666' : '#e5e5e5',
+            border: '1px solid #444444',
+            borderRadius: '4px',
+            padding: '5px 10px',
+            fontSize: '12px',
+            cursor: loading ? 'default' : 'pointer',
+          }}
+        >
+          Reset
+        </button>
+      </div>
 
       {loading && <div style={{ color: '#666666', fontSize: '12px' }}>computing…</div>}
       {!loading && error && <div style={{ color: '#ff3355', fontSize: '12px' }}>{error}</div>}

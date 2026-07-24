@@ -6,6 +6,7 @@ export type CurveSpecDTO = {
   six_month_spreads: string[];
   flies_3m: string[];
   spreads_mode: 'direct_feed' | 'computed';
+  benchmark_names: string[];
 };
 
 export type CurvePairStatRow = {
@@ -93,7 +94,20 @@ export type CustomStructureResponse = {
   formula: number[];
   rolls: StructureRoll[];
   table: StructureRollRow[];
+  benchmark_table: BenchmarkCorrelationRow[];
   generated_at: string;
+};
+
+export type BenchmarkCorrelationCell = {
+  correlation: number | null;
+  n: number;
+  date: string | null;
+};
+
+export type BenchmarkCorrelationRow = {
+  roll: string;
+  live_price: number | null;
+  benchmarks: Record<string, BenchmarkCorrelationCell>;
 };
 
 export type ComparisonRequest = {

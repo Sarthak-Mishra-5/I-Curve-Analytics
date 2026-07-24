@@ -6,7 +6,7 @@ Set-Location $PSScriptRoot
 
 if (-not (Test-Path 'backend\.venv')) {
     Write-Host 'Creating venv...' -ForegroundColor Cyan
-    python -m venv backend\.venv
+    py -3.12 -m venv backend\.venv
 }
 
 & backend\.venv\Scripts\Activate.ps1
