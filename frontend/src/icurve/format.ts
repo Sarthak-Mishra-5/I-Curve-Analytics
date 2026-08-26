@@ -21,3 +21,14 @@ export function erLabel(outrights: string[], name: string, curveId = 'I'): strin
   const idx = outrights.indexOf(name);
   return idx >= 0 ? `${legPrefix(curveId)}${idx + 1}` : shortTenor(name);
 }
+
+// Correlation-strength threshold coloring shared across correlation tables.
+// (StructureBuilder.tsx and CurveStatsTable.tsx each still carry their own
+// private copy of this — safe to leave as-is; new code should import this one.)
+export function corrColor(c: number | null): string {
+  if (c == null) return '#666666';
+  const a = Math.abs(c);
+  if (a >= 0.7) return '#00ff88';
+  if (a >= 0.4) return '#ffaa00';
+  return '#e5e5e5';
+}

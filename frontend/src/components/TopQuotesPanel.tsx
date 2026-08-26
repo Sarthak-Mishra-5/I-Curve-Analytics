@@ -6,10 +6,10 @@ import clsx from 'clsx';
 export default function TopQuotesPanel() {
   const quotes = useStore((s) => s.quotes);
   const contracts = useStore((s) => s.contracts);
-  const order = [...contracts.SA3, ...contracts.ER3];
+  const order = [...contracts.SR3, ...contracts.SO3, ...contracts.I, ...contracts.SA3];
 
   return (
-    <Panel title="Live Quotes" subtitle={`${order.length} contracts`}>
+    <Panel title="Live Quotes" subtitle={`${order.length} contracts`} scroll={false}>
       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
         {order.map((name) => {
           const q = quotes[name];

@@ -10,6 +10,9 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
+# Synthetic history from RV_MOCK runs — never mix with the live cache.
+data_cache/curve_history_mock/
+
 # OS / IDE
 .DS_Store
 .vscode/

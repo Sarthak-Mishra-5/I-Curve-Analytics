@@ -480,6 +480,29 @@ def _weighted_series_from_bars(
     return ts, values
 
 
+def _merged_leg_series(
+    store: CurveHistoryStore, named: list[tuple[str, int]], count: int
+) -> dict[str, tuple[float, float]]:
+    """Long-range (vendor API) + fresh (live store) merged series for ONE
+    weighted leg list against ONE store, as {date_str: (epoch_ts, value)}.
+    Not used by _merged_series below (which inner-joins two sides on raw
+    epoch ts because both live on the same store/tick-clock) — this is the
+    per-leg primitive analytics/inter_product.py needs, where each leg can
+    live on a *different* curve/store with no shared tick clock, so legs are
+    only ever safely joined at calendar-date granularity, never by raw ts or
+    array index."""
+    names = sorted({name for name, _ in named})
+    vendor_bars = _fetch_outright_history(names, count=count)
+    vendor_ts, vendor_val = _weighted_series_from_bars(vendor_bars, named)
+    store_ts, store_val = build_series(store, named)
+    merged: dict[str, tuple[float, float]] = {
+        _date_key(t): (t, v) for t, v in zip(vendor_ts.tolist(), vendor_val.tolist())
+    }
+    for t, v in zip(store_ts.tolist(), store_val.tolist()):
+        merged[_date_key(t)] = (t, v)  # store wins on overlap — fresher than vendor cache
+    return merged
+
+
 def _merged_series(
     store: CurveHistoryStore,
     named_a: list[tuple[str, int]],

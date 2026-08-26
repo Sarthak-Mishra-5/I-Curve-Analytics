@@ -17,10 +17,11 @@ from ..config import (
     ALL_CONTRACTS,
     DATA_ADAPTER,
     FIELD_NAMES,
+    LIVE_PRICE_SCALE,
     SERVER_URL,
 )
 from .state import MarketState
-from .utils import derive_price, normalize_contract_id, parse_timestamp_from_values
+from .utils import derive_price, normalize_contract_id, parse_timestamp_from_values, rescale_price_fields
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +52,10 @@ class _SubListener:
                 name = MarketState.name_from_instrument_id(normalize_contract_id(item_name))
             if name is None:
                 return
+
+            scale = LIVE_PRICE_SCALE.get(name.split()[0])
+            if scale is not None:
+                values = rescale_price_fields(values, scale)
 
             price = derive_price(values)
             if price is None:
@@ -156,25 +161,52 @@ class LightstreamerStreamer:
 
     # --- mock ---------------------------------------------------------------
     def _run_mock(self) -> None:
-        """Synthetic tick generator for offline development."""
+        """Synthetic tick generator for offline development.
+
+        Every contract's move is one shared per-product shock (so adjacent
+        quarters on the same curve track each other tightly, the way real
+        STIR curves do) plus a small idiosyncratic residual, and every
+        contract on a product now starts from that product's own single seed
+        level rather than its own independently-drawn one. A previous
+        version gave every one of the ~300 ALL_CONTRACTS entries both a
+        fully independent starting level AND a fully independent random
+        walk — with no shared component, a calendar spread/fly (whose
+        weights sum to zero) ends up with MORE combined variance than a
+        single outright instead of much less, since uncorrelated noise adds
+        rather than cancelling. Fixing only the per-tick walk wasn't enough
+        on its own: mean reversion here is deliberately slow (so a single
+        tick doesn't overwhelm the curve), so two legs seeded a couple of
+        points apart could take thousands of ticks to converge, producing
+        exactly the kind of large, slowly-decaying spread/fly excursion this
+        was meant to fix. Seeding every contract on a product from the same
+        starting level removes that transient outright.
+        """
         import random
 
         self.status = "LIVE (MOCK)"
+        products = sorted({name.split()[0] for name, _ in ALL_CONTRACTS})
         # Reasonable seed levels: SARON/€STR 3M futures roughly 96.50–99.50.
-        base = {name: random.uniform(96.5, 99.5) for name, _ in ALL_CONTRACTS}
+        # One draw per product — every contract on that curve starts here.
+        product_seed = {p: random.uniform(96.5, 99.5) for p in products}
+        base = {name: product_seed[name.split()[0]] for name, _ in ALL_CONTRACTS}
         # Add a small curve slope so the curve panel is interesting.
         for name in base:
             order = sum(c.isdigit() for c in name)
             base[name] += order * 0.01
 
         while not self._stop.is_set():
+            # One shock per product per round, shared by every contract on
+            # that curve — this is what keeps a spread/fly's legs moving
+            # together instead of drifting apart independently.
+            product_shock = {p: random.gauss(0, 0.006) for p in products}
             for name, _iid in ALL_CONTRACTS:
                 if self._stop.is_set():
                     break
-                # Mean-reverting random walk.
+                # Mean-reverting random walk: shared curve-level shock plus a
+                # much smaller idiosyncratic residual per contract.
                 prev = base[name]
                 drift = (98.0 - prev) * 0.001
-                shock = random.gauss(0, 0.005)
+                shock = product_shock[name.split()[0]] + random.gauss(0, 0.0008)
                 base[name] = prev + drift + shock
                 mid = base[name]
                 bid = round(mid - 0.0025, 4)

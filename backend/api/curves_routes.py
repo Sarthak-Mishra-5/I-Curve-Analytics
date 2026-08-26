@@ -5,9 +5,18 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query
 
+from ..config import TICK_SIZE
 from ..curves.registry import get_curve, list_curves
 
 router = APIRouter(prefix="/api/curves", tags=["curves"])
+
+_CANDLE_INTERVAL_SEC = {
+    "5m": 300,
+    "10m": 600,
+    "30m": 1800,
+    "1h": 3600,
+    "1d": 86400,
+}
 
 
 @router.get("")
@@ -76,6 +85,75 @@ async def curve_history(
         for t, v in zip(ts[mask].tolist(), prices[mask].tolist())
     ]
     return {"instrument": instrument, "bars": bars}
+
+
+@router.get("/{curve_id}/candles")
+async def curve_candles(
+    curve_id: str,
+    instrument: str = Query(..., description="Contract display name, e.g. 'SR3 Sep27'"),
+    interval: str = Query("30m", description="One of: 5m, 10m, 30m, 1h, 1d"),
+) -> dict:
+    from .app import ctx
+
+    bucket_sec = _CANDLE_INTERVAL_SEC.get(interval)
+    if bucket_sec is None:
+        raise HTTPException(status_code=400, detail=f"unknown interval '{interval}', expected one of {sorted(_CANDLE_INTERVAL_SEC)}")
+
+    store = ctx.curve_histories.get(curve_id)
+    if store is None:
+        raise HTTPException(status_code=404, detail=f"unknown curve '{curve_id}'")
+
+    source = store.ohlcv_window(instrument)
+    if not source:
+        return {"instrument": instrument, "interval": interval, "bars": []}
+
+    return {
+        "instrument": instrument,
+        "interval": interval,
+        "tick_size": TICK_SIZE.get(instrument.split()[0]),
+        "bars": _resample_ohlcv(source, bucket_sec),
+    }
+
+
+# Mirrors CurveHistoryStore's own glitch guard (analytics/curve_history.py) —
+# a defensive second line against implausible one-off samples reaching a
+# candle (e.g. a stale scale mismatch from the historical-backfill seam),
+# applied here at read-time since that seam is a separate code path.
+_MAX_PLAUSIBLE_JUMP = 20.0
+
+
+def _resample_ohlcv(
+    source: list[tuple[float, float, float, float, float, float]], bucket_sec: int
+) -> list[dict]:
+    """Aggregate ascending (t, o, h, l, c, v) base bars into `bucket_sec`-wide
+    candles: open of the first bar, running high/low, close of the last, and
+    summed volume. Buckets with no base bars are simply absent rather than
+    interpolated, so market closures stay as real gaps in the series."""
+    bars: list[dict] = []
+    bucket: float | None = None
+    o = h = l = c = 0.0
+    v = 0.0
+    last_close: float | None = None
+
+    def flush() -> None:
+        if bucket is not None:
+            bars.append({"t": _iso(bucket), "o": o, "h": h, "l": l, "c": c, "v": v})
+
+    for t, bo, bh, bl, bc, bv in source:
+        if last_close is not None and abs(bc - last_close) > _MAX_PLAUSIBLE_JUMP:
+            continue
+        last_close = bc
+        b = (t // bucket_sec) * bucket_sec
+        if b != bucket:
+            flush()
+            bucket, o, h, l, c, v = b, bo, bh, bl, bc, bv
+        else:
+            h = max(h, bh)
+            l = min(l, bl)
+            c = bc
+            v += bv
+    flush()
+    return bars
 
 
 def _iso(epoch_sec: float) -> str:

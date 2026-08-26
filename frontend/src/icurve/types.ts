@@ -1,3 +1,9 @@
+// GET /api/curves row shape (curves_routes.list_curves()).
+export type ProductSummary = {
+  curve_id: string;
+  label: string;
+};
+
 export type CurveSpecDTO = {
   curve_id: string;
   label: string;

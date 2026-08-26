@@ -124,6 +124,10 @@ SUBSCRIBED_CONTRACTS_I = [
     ("I Jun29", "5829843526467061673"),
     ("I Sep29", "17983703097809095440"),
     ("I Dec29", "18370117369950377328"),
+    ("I Mar30", "6488806392486217148"),
+    ("I Jun30", "1727586975590923283"),
+    ("I Sep30", "7297840225510912048"),
+    ("I Dec30", "9275986266275574972"),
     ("I Sep26-Dec26", "1311068273505625388"),
     ("I Dec26-Mar27", "16718227565601251613"),
     ("I Mar27-Jun27", "1767469478377361142"),
@@ -452,4 +456,12 @@ TICK_SIZE = {
     "I": 0.005,
     "SO3": 0.005,
     "SR3": 0.005,
+}
+
+# The live Lightstreamer feed reports SR3 (SOFR) price-like fields 100x too
+# large relative to every other curve on this platform (e.g. 9589.5 instead
+# of 95.895 — bid/ask/open/high/low all affected uniformly). Corrected at
+# ingestion, keyed by product prefix; see streaming/utils.rescale_price_fields.
+LIVE_PRICE_SCALE: dict[str, float] = {
+    "SR3": 0.01,
 }

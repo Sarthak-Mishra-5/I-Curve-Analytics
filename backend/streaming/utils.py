@@ -71,6 +71,24 @@ def parse_timestamp_from_values(values: dict[str, Any]) -> datetime:
     return now
 
 
+_PRICE_FIELDS = (
+    "Open", "High", "Low", "Close", "Settle", "PrevSettle",
+    "BestBid", "BestAsk", "IndSettle", "Price", "AdminPrice", "Last",
+)
+
+
+def rescale_price_fields(values: dict[str, Any], factor: float) -> dict[str, Any]:
+    """Return a copy of `values` with every price-like field multiplied by
+    `factor`. Used to correct products whose live feed reports prices on a
+    different scale than the rest of the platform (see config.LIVE_PRICE_SCALE)."""
+    out = dict(values)
+    for field in _PRICE_FIELDS:
+        v = safe_float(out.get(field))
+        if v is not None:
+            out[field] = v * factor
+    return out
+
+
 def derive_price(values: dict[str, Any]) -> float | None:
     """Apply the same fallback chain used by the reference client."""
     bid = safe_float(values.get("BestBid"))

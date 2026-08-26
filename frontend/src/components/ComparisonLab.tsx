@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComparisonResponse, CorrelationHistoryPoint, CurveSpecDTO, StructurePriceHistoryPoint } from '../icurve/types';
 import { shortTenor } from '../icurve/format';
 import { fmt } from '../plotlyTheme';
@@ -36,13 +36,20 @@ function isoDateOffset(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// Today, in the same UTC calendar-date space the backend keys its merged
+// series by (see custom_structure._date_key). Deliberately not persisted:
+// the end of the range is always "now", so a range saved on an earlier day
+// can never silently truncate the comparison to that day.
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 type ComparisonLabState = {
   nameA?: string;
   nameB?: string;
   weightsA?: Record<string, number>;
   weightsB?: Record<string, number>;
   startDate?: string;
-  endDate?: string;
   result?: ComparisonResponse | null;
   points?: CorrelationHistoryPoint[];
   pricePoints?: StructurePriceHistoryPoint[];
@@ -77,7 +84,7 @@ function sanitizeSavedState(saved: ComparisonLabState, outrights: string[]): Com
     Object.keys(saved.weightsA ?? {}).length !== Object.keys(weightsA).length ||
     Object.keys(saved.weightsB ?? {}).length !== Object.keys(weightsB).length;
   if (!contaminated) return saved;
-  return { nameA: saved.nameA, nameB: saved.nameB, weightsA, weightsB, startDate: saved.startDate, endDate: saved.endDate };
+  return { nameA: saved.nameA, nameB: saved.nameB, weightsA, weightsB, startDate: saved.startDate };
 }
 
 export default function ComparisonLab({ curveId, curveSpec }: Props) {
@@ -92,7 +99,7 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
   const [weightsA, setWeightsA] = useState<Record<string, number>>(savedState.weightsA ?? {});
   const [weightsB, setWeightsB] = useState<Record<string, number>>(savedState.weightsB ?? {});
   const [startDate, setStartDate] = useState(savedState.startDate ?? isoDateOffset(180));
-  const [endDate, setEndDate] = useState(savedState.endDate ?? new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(todayIso());
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ComparisonResponse | null>(savedState.result ?? null);
   const [points, setPoints] = useState<CorrelationHistoryPoint[]>(savedState.points ?? []);
@@ -100,8 +107,26 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify({ nameA, nameB, weightsA, weightsB, startDate, endDate, result, points, pricePoints }));
-  }, [storageKey, nameA, nameB, weightsA, weightsB, startDate, endDate, result, points, pricePoints]);
+    localStorage.setItem(storageKey, JSON.stringify({ nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints }));
+  }, [storageKey, nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints]);
+
+  // A terminal left open overnight would otherwise keep yesterday's end date.
+  // Re-pin it to today whenever the tab is looked at again — but only while it
+  // still holds the auto value, so a deliberately chosen end date is kept.
+  const autoEndRef = useRef(endDate);
+  useEffect(() => {
+    function syncEndToToday() {
+      const today = todayIso();
+      setEndDate((prev) => (prev === autoEndRef.current ? today : prev));
+      autoEndRef.current = today;
+    }
+    window.addEventListener('focus', syncEndToToday);
+    document.addEventListener('visibilitychange', syncEndToToday);
+    return () => {
+      window.removeEventListener('focus', syncEndToToday);
+      document.removeEventListener('visibilitychange', syncEndToToday);
+    };
+  }, []);
 
   const legsA = nonZeroLegCount(weightsA);
   const legsB = nonZeroLegCount(weightsB);
@@ -148,7 +173,7 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
     setWeightsA({});
     setWeightsB({});
     setStartDate(isoDateOffset(180));
-    setEndDate(new Date().toISOString().slice(0, 10));
+    setEndDate(todayIso());
     setResult(null);
     setPoints([]);
     setPricePoints([]);

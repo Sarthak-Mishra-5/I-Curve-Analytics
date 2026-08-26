@@ -2,11 +2,15 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { Alert, AnalyticsPayload, Quote } from './types';
 
+type Contracts = { SA3: string[]; ER3: string[]; I: string[]; SR3: string[]; SO3: string[] };
+
+const EMPTY_CONTRACTS: Contracts = { SA3: [], ER3: [], I: [], SR3: [], SO3: [] };
+
 type Snapshot = {
   quotes: Record<string, Quote>;
   analytics: AnalyticsPayload | {};
   alerts: Alert[];
-  contracts: { SA3: string[]; ER3: string[] };
+  contracts: Partial<Contracts>;
   stream_status: string;
 };
 
@@ -16,7 +20,7 @@ interface State {
   quotes: Record<string, Quote>;
   analytics: AnalyticsPayload | null;
   alerts: Alert[];
-  contracts: { SA3: string[]; ER3: string[] };
+  contracts: Contracts;
   lastTickAt: number;
   setConnected: (v: boolean) => void;
   applySnapshot: (s: Snapshot) => void;
@@ -32,7 +36,7 @@ export const useStore = create<State>()(
     quotes: {},
     analytics: null,
     alerts: [],
-    contracts: { SA3: [], ER3: [] },
+    contracts: EMPTY_CONTRACTS,
     lastTickAt: 0,
     setConnected: (v) => set({ connected: v }),
     applySnapshot: (s) =>
@@ -40,7 +44,7 @@ export const useStore = create<State>()(
         quotes: s.quotes ?? {},
         analytics: (s.analytics as AnalyticsPayload) ?? null,
         alerts: s.alerts ?? [],
-        contracts: s.contracts ?? { SA3: [], ER3: [] },
+        contracts: { ...EMPTY_CONTRACTS, ...(s.contracts ?? {}) },
         streamStatus: s.stream_status ?? 'INIT',
       }),
     applyTickBatch: (batch) =>

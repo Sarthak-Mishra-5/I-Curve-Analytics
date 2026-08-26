@@ -34,6 +34,7 @@ from ..websocket.hub import WSHub
 from .curves_routes import router as curves_router
 from .custom_structure_routes import router as custom_structure_router
 from .historical_routes import router as historical_router
+from .inter_product_routes import router as inter_product_router
 
 log = logging.getLogger(__name__)
 
@@ -80,7 +81,12 @@ async def _tick_pump() -> None:
             if curve_id and price is not None:
                 store = ctx.curve_histories.get(curve_id)
                 if store is not None:
-                    store.on_tick(item["instrument"], datetime.fromisoformat(item["ts"]), price)
+                    store.on_tick(
+                        item["instrument"],
+                        datetime.fromisoformat(item["ts"]),
+                        price,
+                        item.get("volume"),
+                    )
         await ctx.hub.broadcast({"type": "tick", "payload": batch})
 
 
@@ -101,12 +107,21 @@ async def lifespan(app: FastAPI):
                                     on_compute=ctx.alerts.on_analytics)
     ctx.curve_correlation_cache = HistoricalCorrelationCache(CURVE_CORRELATION_HISTORY_DIR)
 
+    # Mock ticks are synthetic random-walk prices. Persisting them into the
+    # live history cache silently poisons every downstream consumer (charts,
+    # correlation/beta tables) with prints that never traded, and they're
+    # indistinguishable from real bars once on disk — so mock runs get their
+    # own directory rather than sharing the live one.
+    history_root = CURVE_HISTORY_DIR.parent / "curve_history_mock" if use_mock else CURVE_HISTORY_DIR
+    if use_mock:
+        log.warning("RV_MOCK enabled — curve history will be written to %s", history_root)
+
     ctx.curve_histories = {}
     ctx.curve_stats_engines = {}
     for curve_id, spec in CURVES.items():
         store = CurveHistoryStore(
             spec.all_instruments(),
-            CURVE_HISTORY_DIR / curve_id,
+            history_root / curve_id,
             bar_sec=CURVE_HISTORY_BAR_SEC,
             window_days=CURVE_HISTORY_WINDOW_DAYS,
         )
@@ -153,6 +168,7 @@ app.add_middleware(
 app.include_router(historical_router)
 app.include_router(curves_router)
 app.include_router(custom_structure_router)
+app.include_router(inter_product_router)
 
 
 @app.get("/api/health")
