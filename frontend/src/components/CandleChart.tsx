@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CandlestickSeries,
   ColorType,
@@ -47,6 +47,10 @@ const GRID = '#1c1c1c';
 const BG = '#0a0a0a';
 
 const REFRESH_MS = 15_000;
+// How many of the newest candles the default view shows, per timeframe. The
+// backfill is deep (weeks of intraday, ~a year of daily), so fitting all of
+// it would render an unreadable smear.
+const DEFAULT_VISIBLE_BARS = 120;
 
 /** Decimals implied by the instrument's tick size (0.005 -> 3dp). */
 function decimalsFor(tickSize: number | null): number {
@@ -83,8 +87,34 @@ export default function CandleChart({ curveId, instrument, title, levels = [] }:
   // Set while we programmatically move the viewport, so our own scroll calls
   // aren't mistaken for user navigation.
   const selfScrollingRef = useRef(false);
+  // Bumped by the reset button to re-frame THIS chart only. Each CandleChart
+  // owns its own state, so nothing here reaches the sibling charts.
+  const [resetNonce, setResetNonce] = useState(0);
 
   const decimals = decimalsFor(tickSize);
+
+  // Restore this chart's default view: newest candles visible at a readable
+  // density, price axis auto-fitted to them. Reads bar count off the series
+  // itself so it's safe to call from an effect that doesn't depend on `bars`.
+  const frameToDefault = useCallback(() => {
+    const chart = chartRef.current;
+    const candles = candleRef.current;
+    if (!chart || !candles) return;
+    const count = candles.data().length;
+    if (count === 0) return;
+    selfScrollingRef.current = true;
+    try {
+      chart.timeScale().fitContent();
+      // Then tighten to a sensible default density rather than squeezing the
+      // entire backfilled history into the panel.
+      const visible = Math.min(count, DEFAULT_VISIBLE_BARS);
+      chart.timeScale().setVisibleLogicalRange({ from: count - visible, to: count });
+      // Undo any manual vertical price-scale drag as well.
+      candles.priceScale().applyOptions({ autoScale: true });
+    } finally {
+      selfScrollingRef.current = false;
+    }
+  }, []);
 
   // --- chart construction: once per mount ---------------------------------
   useEffect(() => {
@@ -255,16 +285,17 @@ export default function CandleChart({ curveId, instrument, title, levels = [] }:
     );
 
     // Only auto-frame while the user hasn't taken over navigation.
-    if (!userMovedRef.current) {
-      selfScrollingRef.current = true;
-      chart.timeScale().fitContent();
-      // Then tighten to a sensible default density rather than squeezing the
-      // full 30-day window into the panel.
-      const visible = Math.min(bars.length, 120);
-      chart.timeScale().setVisibleLogicalRange({ from: bars.length - visible, to: bars.length });
-      selfScrollingRef.current = false;
-    }
+    if (!userMovedRef.current) frameToDefault();
   }, [bars]);
+
+  // Re-frame on demand (the per-chart reset button). Separate from the data
+  // effect so pressing it doesn't refetch — it's a viewport action only, and
+  // leaves the candles, levels and timeframe untouched.
+  useEffect(() => {
+    if (resetNonce === 0) return;
+    userMovedRef.current = false;
+    frameToDefault();
+  }, [resetNonce]);
 
   // --- price precision ----------------------------------------------------
   useEffect(() => {
@@ -360,6 +391,32 @@ export default function CandleChart({ curveId, instrument, title, levels = [] }:
               {iv}
             </button>
           ))}
+          {/* Per-chart view reset. Scoped to this chart's own viewport —
+              siblings are untouched — and it does not change the selected
+              timeframe, refetch, or move the reference levels. */}
+          <button
+            onClick={() => setResetNonce((n) => n + 1)}
+            title="Reset this chart's view"
+            aria-label="Reset this chart's view"
+            data-testid="chart-reset"
+            data-instrument={instrument}
+            style={{
+              marginLeft: '4px',
+              padding: '2px 7px',
+              fontSize: '11px',
+              lineHeight: 1.1,
+              fontFamily: 'inherit',
+              borderRadius: '3px',
+              border: '1px solid #262626',
+              backgroundColor: 'transparent',
+              color: MUTED,
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#e5e5e5'; e.currentTarget.style.borderColor = '#3a3a3a'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = MUTED; e.currentTarget.style.borderColor = '#262626'; }}
+          >
+            ⟲
+          </button>
         </div>
       </div>
 
@@ -367,17 +424,22 @@ export default function CandleChart({ curveId, instrument, title, levels = [] }:
       <div
         data-testid="ohlc-readout"
         data-instrument={instrument}
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', padding: '3px 8px', fontSize: '10px', fontVariantNumeric: 'tabular-nums', color: MUTED, borderBottom: '1px solid #1c1c1c', minHeight: '18px', flexShrink: 0 }}
+        // Stays on ONE line at every panel width. Wrapping to a second row
+        // (which it did below ~500px of panel width, i.e. any zoomed-in view)
+        // doubled this strip's height and stole it from the chart. Instead the
+        // numbers are pinned and the timestamp is the only flexible item, so
+        // it ellipsises away first and O/H/L/C/V never move or get clipped.
+        style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', whiteSpace: 'nowrap', overflow: 'hidden', padding: '3px 8px', fontSize: '10px', fontVariantNumeric: 'tabular-nums', color: MUTED, borderBottom: '1px solid #1c1c1c', minHeight: '18px', flexShrink: 0 }}
       >
         {shown ? (
           <>
-            <span style={{ color: '#8a8a8a' }}>{stamp}</span>
-            <span>O <span style={{ color: TEXT }}>{px(shown.open)}</span></span>
-            <span>H <span style={{ color: TEXT }}>{px(shown.high)}</span></span>
-            <span>L <span style={{ color: TEXT }}>{px(shown.low)}</span></span>
-            <span>C <span style={{ color: TEXT }}>{px(shown.close)}</span></span>
-            <span>V <span style={{ color: TEXT }}>{fmtVolume(shown.volume)}</span></span>
-            <span style={{ color: changeColor }}>
+            <span style={{ color: '#8a8a8a', flex: '0 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{stamp}</span>
+            <span style={{ flexShrink: 0 }}>O <span style={{ color: TEXT }}>{px(shown.open)}</span></span>
+            <span style={{ flexShrink: 0 }}>H <span style={{ color: TEXT }}>{px(shown.high)}</span></span>
+            <span style={{ flexShrink: 0 }}>L <span style={{ color: TEXT }}>{px(shown.low)}</span></span>
+            <span style={{ flexShrink: 0 }}>C <span style={{ color: TEXT }}>{px(shown.close)}</span></span>
+            <span style={{ flexShrink: 0 }}>V <span style={{ color: TEXT }}>{fmtVolume(shown.volume)}</span></span>
+            <span style={{ color: changeColor, flexShrink: 0 }}>
               {change == null ? '—' : (change > 0 ? '+' : '') + change.toFixed(decimals)}
               {changePct != null && ` (${changePct > 0 ? '+' : ''}${changePct.toFixed(2)}%)`}
             </span>

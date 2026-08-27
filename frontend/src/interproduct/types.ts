@@ -108,6 +108,8 @@ export type InterProductAnalyzeResponse = {
   };
   chart_data: {
     leg_price_points: LegPricePoint[];
+    // True daily OHLC for leg 1, used to draw it as candles in 'raw' mode.
+    leg_a_candles?: { date: string; o: number; h: number; l: number; c: number }[];
     rolling_correlation_points: RollingCorrelationPoint[];
     rv_points: RVBandPoint[];
     zscore_points: ZScorePoint[];

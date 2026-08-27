@@ -18,11 +18,14 @@ from ..analytics.engine import AnalyticsEngine
 from ..analytics.historical_correlation import HistoricalCorrelationCache
 from ..config import (
     ALL_CONTRACTS,
+    CHART_RESOLUTIONS,
+    CURVE_CHART_HISTORY_DIR,
     CURVE_CORRELATION_HISTORY_DIR,
     CURVE_HISTORY_BAR_SEC,
     CURVE_HISTORY_DIR,
     CURVE_HISTORY_WINDOW_DAYS,
     ER3_NAMES,
+    LIVE_OR_DEEP_INSTRUMENTS,
     SA3_NAMES,
     SO3_NAMES,
     SR3_NAMES,
@@ -50,6 +53,10 @@ class AppCtx:
     curve_histories: dict[str, CurveHistoryStore]
     curve_stats_engines: dict[str, CurveStatsEngine]
     curve_correlation_cache: HistoricalCorrelationCache
+    # Deep chart history for the Live OR candle charts, keyed by
+    # (instrument, resolution_key) — one series per native vendor resolution.
+    # See config.CHART_RESOLUTIONS / CHART_INTERVAL_SOURCE.
+    chart_histories: dict[tuple[str, str], CurveHistoryStore]
 
 
 ctx = AppCtx()
@@ -79,15 +86,79 @@ async def _tick_pump() -> None:
             price = item.get("price")
             curve_id = INSTRUMENT_TO_CURVE.get(item["instrument"])
             if curve_id and price is not None:
+                instrument = item["instrument"]
+                ts = datetime.fromisoformat(item["ts"])
+                volume = item.get("volume")
                 store = ctx.curve_histories.get(curve_id)
                 if store is not None:
-                    store.on_tick(
-                        item["instrument"],
-                        datetime.fromisoformat(item["ts"]),
-                        price,
-                        item.get("volume"),
-                    )
+                    store.on_tick(instrument, ts, price, volume)
+                # Keep every resolution of the deep chart history live too, so
+                # the newest candle on each timeframe tracks the market
+                # instead of stopping at the last backfilled bar.
+                for res_key in CHART_RESOLUTIONS:
+                    deep = ctx.chart_histories.get((instrument, res_key))
+                    if deep is not None:
+                        deep.on_tick(instrument, ts, price, volume)
         await ctx.hub.broadcast({"type": "tick", "payload": batch})
+
+
+def _build_chart_histories(use_mock: bool) -> dict[tuple[str, str], CurveHistoryStore]:
+    """Create and freshly seed one chart-history store per (instrument,
+    resolution) from the vendor OHLC API.
+
+    Each store is truncated and rebuilt every startup rather than merged
+    into: these are pure caches derived from the API plus live ticks since
+    boot, and the API already returns bars right up to the current minute,
+    so a rebuild loses nothing. It also means a wrongly-scaled or otherwise
+    bad bar can never persist across a restart — which is exactly how the
+    live cache got poisoned before.
+
+    Under RV_MOCK the stores are created but left empty: seeding real
+    historical prices and then feeding synthetic mock ticks into the same
+    series produces a discontinuity that looks like real price action.
+    """
+    from ..data.historical_api import curve_instrument_to_code
+    from ..data.ohlc_api import fetch_ohlcv
+
+    stores: dict[tuple[str, str], CurveHistoryStore] = {}
+    root = CURVE_CHART_HISTORY_DIR.parent / "chart_history_mock" if use_mock else CURVE_CHART_HISTORY_DIR
+
+    for res_key, res in CHART_RESOLUTIONS.items():
+        # One request per resolution covering every instrument the vendor
+        # row cap allows, rather than one request per instrument.
+        code_to_name: dict[str, str] = {}
+        for curve_id, instrument in LIVE_OR_DEEP_INSTRUMENTS:
+            store = CurveHistoryStore(
+                [instrument],
+                root / res_key,
+                bar_sec=res["bar_sec"],
+                window_days=res["window_days"],
+            )
+            store.reset_instrument(instrument)
+            stores[(instrument, res_key)] = store
+            code = curve_instrument_to_code(curve_id, instrument)
+            if code is not None:
+                code_to_name[code] = instrument
+
+        if use_mock or not code_to_name:
+            continue
+
+        try:
+            bars = fetch_ohlcv(
+                list(code_to_name), res["interval"], res["count"], with_side_volume=False
+            )
+        except Exception:  # noqa: BLE001
+            log.exception(
+                "chart history %s backfill failed (charts will build from live ticks only)", res_key
+            )
+            continue
+
+        for code, rows in bars.items():
+            instrument = code_to_name[code]
+            written = stores[(instrument, res_key)].seed_from(instrument, rows)
+            log.info("chart history %s %s: seeded %d bars", res_key, instrument, written)
+
+    return stores
 
 
 @asynccontextmanager
@@ -139,6 +210,8 @@ async def lifespan(app: FastAPI):
         ctx.curve_stats_engines[curve_id] = engine
         engine.start()
 
+    ctx.chart_histories = _build_chart_histories(use_mock)
+
     ctx.streamer.start()
     ctx.analytics.start()
     ctx.tick_pump_task = asyncio.create_task(_tick_pump(), name="tick-pump")
@@ -154,6 +227,8 @@ async def lifespan(app: FastAPI):
             await engine.stop()
         for store in ctx.curve_histories.values():
             store.persist_all()
+        for chart_store in ctx.chart_histories.values():
+            chart_store.persist_all()
         ctx.streamer.stop()
         log.info("RV platform stopped.")
 

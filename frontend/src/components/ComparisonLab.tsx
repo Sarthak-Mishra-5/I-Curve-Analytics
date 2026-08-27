@@ -4,7 +4,7 @@ import { shortTenor } from '../icurve/format';
 import { fmt } from '../plotlyTheme';
 import CorrelationOverTimeChart from './CorrelationOverTimeChart';
 import Panel from './Panel';
-import StructurePriceHistoryChart from './StructurePriceHistoryChart';
+import StructurePriceHistoryChart, { type StructureCandle } from './StructurePriceHistoryChart';
 import WeightGrid, { MAX_LEGS, nonZeroLegCount } from './WeightGrid';
 
 interface Props {
@@ -53,6 +53,7 @@ type ComparisonLabState = {
   result?: ComparisonResponse | null;
   points?: CorrelationHistoryPoint[];
   pricePoints?: StructurePriceHistoryPoint[];
+  priceCandlesA?: StructureCandle[];
 };
 
 function readSavedState(key: string): ComparisonLabState {
@@ -104,11 +105,13 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
   const [result, setResult] = useState<ComparisonResponse | null>(savedState.result ?? null);
   const [points, setPoints] = useState<CorrelationHistoryPoint[]>(savedState.points ?? []);
   const [pricePoints, setPricePoints] = useState<StructurePriceHistoryPoint[]>(savedState.pricePoints ?? []);
+  // True daily OHLC for Structure A, drawn as candles (B stays a line).
+  const [priceCandlesA, setPriceCandlesA] = useState<StructureCandle[]>(savedState.priceCandlesA ?? []);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify({ nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints }));
-  }, [storageKey, nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints]);
+    localStorage.setItem(storageKey, JSON.stringify({ nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints, priceCandlesA }));
+  }, [storageKey, nameA, nameB, weightsA, weightsB, startDate, result, points, pricePoints, priceCandlesA]);
 
   // A terminal left open overnight would otherwise keep yesterday's end date.
   // Re-pin it to today whenever the tab is looked at again — but only while it
@@ -156,10 +159,12 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
       const historyBody = await historyRes.json();
       setPoints(historyRes.ok ? historyBody.points ?? [] : []);
       setPricePoints(historyRes.ok ? historyBody.price_points ?? [] : []);
+      setPriceCandlesA(historyRes.ok ? historyBody.candles_a ?? [] : []);
     } catch (err: any) {
       setResult(null);
       setPoints([]);
       setPricePoints([]);
+      setPriceCandlesA([]);
       setError(err.message ?? 'Comparison failed');
     } finally {
       setLoading(false);
@@ -292,7 +297,7 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
           </div>
 
           <div style={{ color: '#666666', fontSize: '11px', marginBottom: '4px' }}>{nameA || 'Structure A'} and {nameB || 'Structure B'} price history — past 6 months</div>
-          <StructurePriceHistoryChart points={pricePoints} loading={false} height={260} labelA={nameA || 'Structure A'} labelB={nameB || 'Structure B'} />
+          <StructurePriceHistoryChart points={pricePoints} loading={false} height={260} labelA={nameA || 'Structure A'} labelB={nameB || 'Structure B'} candlesA={priceCandlesA} />
 
           <div style={{ color: '#666666', fontSize: '11px', margin: '10px 0 4px' }}>{nameA || 'Structure A'} vs {nameB || 'Structure B'} correlation — past 6 months</div>
           <CorrelationOverTimeChart points={points} loading={false} height={260} lineColor="#4aa8ff" />

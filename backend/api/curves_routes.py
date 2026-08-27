@@ -5,18 +5,14 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ..config import TICK_SIZE
+from ..config import CHART_INTERVAL_SOURCE, TICK_SIZE
 from ..curves.registry import get_curve, list_curves
 
 router = APIRouter(prefix="/api/curves", tags=["curves"])
 
-_CANDLE_INTERVAL_SEC = {
-    "5m": 300,
-    "10m": 600,
-    "30m": 1800,
-    "1h": 3600,
-    "1d": 86400,
-}
+# Bucket width per UI timeframe, used when aggregating whatever source series
+# backs it (see config.CHART_INTERVAL_SOURCE).
+_CANDLE_INTERVAL_SEC = {name: bucket for name, (_res, bucket) in CHART_INTERVAL_SOURCE.items()}
 
 
 @router.get("")
@@ -95,11 +91,17 @@ async def curve_candles(
 ) -> dict:
     from .app import ctx
 
-    bucket_sec = _CANDLE_INTERVAL_SEC.get(interval)
-    if bucket_sec is None:
-        raise HTTPException(status_code=400, detail=f"unknown interval '{interval}', expected one of {sorted(_CANDLE_INTERVAL_SEC)}")
+    source_spec = CHART_INTERVAL_SOURCE.get(interval)
+    if source_spec is None:
+        raise HTTPException(status_code=400, detail=f"unknown interval '{interval}', expected one of {sorted(CHART_INTERVAL_SOURCE)}")
+    res_key, bucket_sec = source_spec
 
-    store = ctx.curve_histories.get(curve_id)
+    # Prefer the deep chart history at this timeframe's native resolution
+    # (real vendor OHLCV, ~20+ days intraday / ~1 year daily). Instruments
+    # without one fall back to the 30-day stats store.
+    store = ctx.chart_histories.get((instrument, res_key))
+    if store is None:
+        store = ctx.curve_histories.get(curve_id)
     if store is None:
         raise HTTPException(status_code=404, detail=f"unknown curve '{curve_id}'")
 

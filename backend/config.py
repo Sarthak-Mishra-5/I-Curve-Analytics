@@ -9,6 +9,22 @@ SERVER_URL = "https://ls-md.corp.hertshtengroup.com/"
 ADAPTER_SET = "TTsdkLSAdapter"
 DATA_ADAPTER = "HGL1_Adapter"
 
+OHLC_API_URL = "https://qh-api.corp.hertshtengroup.com/api/v2/ohlc"
+# Vendor limits. The row cap is per REQUEST and counted across every
+# instrument in it (4 instruments x count=3000 = 12000 rows is rejected), so
+# batch size has to be derived from the requested bar count — see
+# data/ohlc_api.max_batch_size.
+OHLC_API_RATE_LIMIT_PER_MINUTE = 10
+OHLC_API_MAX_ROW = 10000
+
+BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoyMDg4NjkzNzM1LCJpYXQiOjE3NzMzMzM3MzUsImp0aSI6ImM1N2EzZjhiNTgwYjRjOGFhYjM4Yzg4MGU5ZjcwY2UyIiwidXNlcl9pZCI6MzgzfQ.TRJ6ept6qPf2iCZucURSzUKSJbYCrNYGdHsPa8aYZGc"
+
+def get_auth_headers():
+    return {
+        "Authorization": f"Bearer {BEARER_TOKEN}",
+        "Accept": "application/json"
+    }
+
 FIELD_NAMES = [
     "command",
     "Exchange",
@@ -424,6 +440,42 @@ CURVE_STATS_INTERVAL_SEC = 60.0        # how often the curve stats scheduler rec
 CURVE_HISTORY_DIR = Path(__file__).parent.parent / "data_cache" / "curve_history"
 CURVE_CORRELATION_HISTORY_DIR = Path(__file__).parent.parent / "data_cache" / "curve_correlation"
 CURVE_CORRELATION_HISTORY_DAYS = 180   # trailing window shown in every correlation chart (~6 months)
+
+# --- Chart history for the Live OR candle charts ---------------------------
+# Deliberately SEPARATE stores from CURVE_HISTORY_DIR above: that store's
+# 30-day/60-second window is what every stats table (z-scores, correlations,
+# percentiles) is computed over, and widening or re-resolving it would
+# silently change all of them.
+#
+# One store per native vendor resolution, because mixing resolutions in a
+# single series makes the fine timeframes lie: a daily bar stamped at
+# midnight, sitting in a 5-minute grid, would render as one lone candle at
+# 00:00 for that whole day. So intraday timeframes aggregate up from the 5M
+# series, and the daily chart reads the 1D series directly.
+CURVE_CHART_HISTORY_DIR = Path(__file__).parent.parent / "data_cache" / "chart_history"
+CHART_RESOLUTIONS: dict[str, dict] = {
+    # key -> vendor interval, bar seconds, bars to request, retention
+    "5m": {"interval": "5M", "bar_sec": 300, "count": 6000, "window_days": 45},
+    "1d": {"interval": "1D", "bar_sec": 86400, "count": 400, "window_days": 500},
+}
+# Which persisted resolution backs each timeframe the UI offers. Intraday
+# timeframes all aggregate from the 5-minute series (exact, since each is a
+# whole multiple of 5 minutes).
+CHART_INTERVAL_SOURCE: dict[str, tuple[str, int]] = {
+    # ui interval -> (resolution key, aggregation bucket seconds)
+    "5m": ("5m", 300),
+    "10m": ("5m", 600),
+    "30m": ("5m", 1800),
+    "1h": ("5m", 3600),
+    "1d": ("1d", 86400),
+}
+# Instruments that get the deep chart history (curve_id, display name).
+LIVE_OR_DEEP_INSTRUMENTS: list[tuple[str, str]] = [
+    ("SR3", "SR3 Sep27"),
+    ("SO3", "SO3 Sep27"),
+    ("I", "I Sep27"),
+    ("SA3", "SA3 Sep27"),
+]
 
 # Analytics windows (number of observations / ticks). In-memory only.
 ROLLING_BUFFER_SIZE = 5000          # per-instrument tick buffer cap

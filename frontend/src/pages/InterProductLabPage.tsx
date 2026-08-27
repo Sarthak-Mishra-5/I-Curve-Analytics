@@ -161,16 +161,20 @@ export default function InterProductLabPage() {
   const legAName = result?.legs[0]?.label ?? 'Leg 1';
   const legBName = result?.legs[1]?.label ?? 'Leg 2';
 
-  // Once results render, this page grows tall (4 stat panels + 5 charts);
-  // without pinning, scrolling down to see them scrolls the builder/Analyze/
-  // Reset controls above out of view with no way back to them short of
-  // scrolling all the way back up. Sticking this panel to the top of the
-  // scroll container keeps "change a leg" and "Reset" reachable at all times.
+  // Once results render, this page grows tall (4 stat panels + 5 charts).
+  // Collapsing the leg builders shrinks the controls block to a couple of
+  // rows, which is how the Analyze/Reset controls stay easy to get back to
+  // now that the block scrolls with the page instead of being pinned.
   const [buildersExpanded, setBuildersExpanded] = useState(true);
 
   return (
     <main className="flex-1 overflow-auto p-1.5" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 30, background: '#0a0a0a', paddingBottom: '2px', boxShadow: '0 6px 10px -6px rgba(0,0,0,0.6)' }}>
+      {/* Scrolls with the page. This block used to be position:sticky so the
+          leg controls stayed on screen, but pinning a panel this tall left
+          only a thin strip of moving content underneath, which reads as the
+          page being stuck rather than scrolling. The "Collapse legs" toggle
+          above already solves reachability without freezing the layout. */}
+      <div style={{ background: '#0a0a0a', paddingBottom: '2px' }}>
       <Panel
         title="Inter-Product Lab"
         subtitle="relative value across different STIR curves"
@@ -192,8 +196,7 @@ export default function InterProductLabPage() {
         </div>
         )}
 
-        {/* Window/date/Analyze/Reset always render, even with legs collapsed
-            — these are the controls the sticky panel exists to keep reachable. */}
+        {/* Window/date/Analyze/Reset always render, even with legs collapsed. */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
           <label style={{ color: '#888888', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
             Rolling Window
@@ -315,6 +318,7 @@ export default function InterProductLabPage() {
                 labelA={legAName}
                 labelB={legBName}
                 mode={priceMode}
+                candlesA={result.chart_data.leg_a_candles}
               />
             </Panel>
 

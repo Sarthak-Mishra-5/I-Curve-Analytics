@@ -40,6 +40,20 @@ STALE_REFERENCE_SEC = 86400  # 1 day
 _T, _O, _H, _L, _C, _V = range(6)
 
 
+def _is_implausible_jump(ref_ts: float, ref_price: float, ts: float, price: float) -> bool:
+    """True if `price` at `ts` is an implausible jump from `ref_price` at
+    `ref_ts`. Shared by on_tick's live-print guard and seed_from's backfill
+    guard, since the same wrongly-scaled-price failure can arrive either way.
+
+    The staleness bypass is symmetric: on_tick only ever moves forward in
+    time, but seed_from starts from the store's newest bar and then walks
+    rows that are typically much OLDER than it, so a one-directional check
+    would reject an entire historical backfill."""
+    if abs(ts - ref_ts) > STALE_REFERENCE_SEC:
+        return False
+    return abs(price - ref_price) > MAX_PLAUSIBLE_JUMP
+
+
 def _safe_filename(instrument: str) -> str:
     return "".join(c if c.isalnum() or c in "-_." else "_" for c in instrument) + ".jsonl"
 
@@ -130,9 +144,7 @@ class CurveHistoryStore:
             if not buf:
                 return False
             ref_ts, ref_price = buf[-1][_T], buf[-1][_C]
-        if bucket - ref_ts > STALE_REFERENCE_SEC:
-            return False
-        return abs(price - ref_price) > MAX_PLAUSIBLE_JUMP
+        return _is_implausible_jump(ref_ts, ref_price, bucket, price)
 
     def flush_stale(self, now: datetime | None = None) -> None:
         """Force-close any open bar whose bucket has fully elapsed, even if no
@@ -176,16 +188,43 @@ class CurveHistoryStore:
     def ohlcv_window(
         self, instrument: str, include_open: bool = True
     ) -> list[tuple[float, float, float, float, float, float]]:
-        """Full (t, o, h, l, c, v) bars, ascending. When `include_open`, the
-        still-forming bar is appended so a live chart's most recent candle
-        reflects the current price rather than lagging by up to bar_sec."""
+        """Full (t, o, h, l, c, v) bars, strictly ascending by bucket and with
+        no duplicate buckets. When `include_open`, the still-forming bar is
+        folded in so a live chart's most recent candle reflects the current
+        price rather than lagging by up to bar_sec.
+
+        The open bar is merged by bucket rather than appended: it can share a
+        bucket with a backfilled bar, or even predate the newest one when the
+        backfill source runs ahead of live tick time. Appending blindly then
+        emits an out-of-order series, and chart libraries assert hard on
+        that (lightweight-charts: "data must be asc ordered by time").
+        """
         with self._lock:
-            bars = list(self._bars.get(instrument, ()))
+            by_bucket: dict[float, tuple[float, float, float, float, float, float]] = {
+                bar[_T]: bar for bar in self._bars.get(instrument, ())
+            }
             if include_open:
                 open_bar = self._open.get(instrument)
                 if open_bar is not None:
-                    bars.append(tuple(open_bar))  # type: ignore[arg-type]
-        return bars
+                    bucket = open_bar[_T]
+                    existing = by_bucket.get(bucket)
+                    if existing is None:
+                        by_bucket[bucket] = tuple(open_bar)  # type: ignore[assignment]
+                    else:
+                        # Same bucket seen from both sources: keep the earlier
+                        # open, widen the range, take the live close. Volume is
+                        # max() not sum() — the backfilled figure already
+                        # covers the whole bucket, so adding the partial live
+                        # tally on top would double-count it.
+                        by_bucket[bucket] = (
+                            bucket,
+                            existing[_O],
+                            max(existing[_H], open_bar[_H]),
+                            min(existing[_L], open_bar[_L]),
+                            open_bar[_C],
+                            max(existing[_V], open_bar[_V]),
+                        )
+        return [by_bucket[t] for t in sorted(by_bucket)]
 
     def bars_map(self, instrument: str) -> dict[float, float]:
         """All closed bars for `instrument` as {bucket_ts: close}. Used for
@@ -211,28 +250,73 @@ class CurveHistoryStore:
         return ts, pv, cv
 
     # --- backfill seam ------------------------------------------------------
-    def seed_from(self, instrument: str, rows: Iterable[tuple[datetime, float]]) -> int:
+    def reset_instrument(self, instrument: str) -> None:
+        """Drop every in-memory and on-disk bar for `instrument`.
+
+        Used by the chart-history stores, which are pure caches rebuilt from
+        the vendor OHLC API on every startup. Rebuilding rather than merging
+        is what keeps them provably free of stale or wrongly-scaled bars: a
+        bad row can never outlive the process that wrote it."""
+        with self._lock:
+            self._bars[instrument] = deque()
+            self._open.pop(instrument, None)
+            self._last_cum_vol.pop(instrument, None)
+            path = self._path_for(instrument)
+            try:
+                if path.exists():
+                    path.unlink()
+            except OSError:
+                log.exception("failed to clear curve history file for %s", instrument)
+
+    def seed_from(
+        self,
+        instrument: str,
+        rows: Iterable[tuple[datetime, float]] | Iterable[tuple[datetime, float, float, float, float, float]],
+    ) -> int:
         """Backfill hook for the historical-data source. Buckets `rows` the
         same way live ticks are bucketed; a bucket already populated by a
-        live tick is left untouched (live data wins on overlap). Historical
-        rows carry a single close price, so the seeded bar is flat
-        (o=h=l=c) with zero volume. Returns the number of buckets written."""
+        live tick — or by an earlier call to this method — is left untouched,
+        so the first writer to claim a bucket wins.
+
+        Accepts either a bare ``(ts, close)`` row, seeded as a flat o=h=l=c
+        bar with zero volume, or a full ``(ts, open, high, low, close,
+        volume)`` row from a real OHLC source.
+
+        Rows run through the same implausible-jump guard on_tick uses: a
+        single wrongly-scaled bar landing here doesn't just draw one bad
+        candle, it becomes the reference every later live tick is compared
+        against, which silently rejects all of them. Returns the number of
+        buckets written."""
         if instrument not in self._bars:
             return 0
         written = 0
+        rejected = 0
         with self._lock:
             existing = {b[_T] for b in self._bars[instrument]}
-            new_bars: dict[float, float] = {}
-            for ts, price in rows:
+            buf = self._bars[instrument]
+            last_ref = (buf[-1][_T], buf[-1][_C]) if buf else None
+            new_bars: dict[float, tuple[float, float, float, float, float]] = {}
+            for row in sorted(rows, key=lambda r: r[0]):
+                ts = row[0]
+                if len(row) >= 6:
+                    _, o, h, l, c, v = row
+                else:
+                    _, c = row
+                    o, h, l, v = c, c, c, 0.0
                 bucket = self._bucket_ts(ts)
+                if last_ref is not None and _is_implausible_jump(last_ref[0], last_ref[1], bucket, c):
+                    rejected += 1
+                    continue
+                last_ref = (bucket, c)
                 if bucket in existing:
                     continue
-                new_bars[bucket] = price  # last write per bucket wins among seeded rows
+                new_bars[bucket] = (o, h, l, c, v)  # last write per bucket wins among seeded rows
+            if rejected:
+                log.warning("seed_from rejected %d implausible bar(s) for %s", rejected, instrument)
             if not new_bars:
                 return 0
-            buf = self._bars[instrument]
-            for bucket, price in new_bars.items():
-                buf.append((bucket, price, price, price, price, 0.0))
+            for bucket, (o, h, l, c, v) in new_bars.items():
+                buf.append((bucket, o, h, l, c, v))
                 written += 1
             merged = sorted(buf)
             buf.clear()

@@ -165,53 +165,32 @@ def fetch_vendor_bars(
     Returns ``{code: [(timestamp, close), ...]}``, keyed by the exact code
     passed in. This works for both I-curve codes (for example ``ERZ26-M27``)
     and the ER3 benchmark code ``FERM26-Z26``.
+
+    Transport is delegated to :mod:`backend.data.ohlc_api`, so this shares
+    that module's rate limiter and request batching. That matters: this
+    function used to run its own limiter tuned to 50 requests/minute and
+    ship only 2 codes per request, which both exceeded the vendor's real
+    per-minute quota (producing HTTP 429 storms that silently dropped whole
+    curves from the startup backfill) and needed ~100 requests to cover a
+    curve that now fits in a handful. The close-only 2-tuple return shape is
+    kept for the existing callers in analytics/ and historical_loader.
     """
-    if len(codes) > _HISTORICAL_BATCH_SIZE:
-        merged: dict[str, list[tuple[datetime, float]]] = {code: [] for code in codes}
-        for start in range(0, len(codes), _HISTORICAL_BATCH_SIZE):
-            merged.update(fetch_vendor_bars(codes[start:start + _HISTORICAL_BATCH_SIZE], interval, count))
-        return merged
+    from .ohlc_api import fetch_ohlcv
 
-    api_module = _get_historical_api()
-    api_module._wait_for_rate_limit()
-
-    params = {"instruments": ",".join(codes), "interval": interval, "count": str(count)}
-    url = f"{api_module.API_URL}?{urlencode(params)}"
-    request = Request(
-        url,
-        headers={
-            "Authorization": f"Bearer {api_module.API_ACCESS_TOKEN.strip()}",
-            "Accept": "application/json",
-            "User-Agent": "dash-pyqt6/1.0",
-        },
-        method="GET",
-    )
-
-    with urlopen(request, timeout=60) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-
-    data_list = payload["data"] if isinstance(payload, dict) and "data" in payload else payload
-    if not isinstance(data_list, list):
-        raise api_module.HistoricalApiError(f"unexpected response shape for {url}")
-
+    # Vendor codes come back either exactly as sent or with an "FSR" prefix;
+    # map both spellings back to the caller's original string.
     wanted = {c.strip().upper(): c for c in codes}
+    rows_by_code = fetch_ohlcv(list(wanted), interval=interval, count=count)
+
     out: dict[str, list[tuple[datetime, float]]] = {c: [] for c in codes}
-    for item in data_list:
-        if not isinstance(item, dict):
-            continue
-        ts_ms, close = item.get("time"), item.get("close")
-        if ts_ms in (None, "") or close in (None, ""):
-            continue
-        raw_code = str(item.get("product", "")).strip().upper()
-        stripped_code = raw_code[3:] if raw_code.startswith("FSR") else raw_code
-        orig = wanted.get(raw_code) or wanted.get(stripped_code)
+    for raw_code, rows in rows_by_code.items():
+        stripped = raw_code[3:] if raw_code.startswith("FSR") else raw_code
+        orig = wanted.get(raw_code) or wanted.get(stripped)
         if orig is None:
             continue
-        ts = datetime.fromtimestamp(int(ts_ms) / 1000, tz=timezone.utc)
-        # Unlike fetch_historical_ohlc()'s SA3/ER3 path, the I curve's vendor
-        # codes already return `close` in display scale (e.g. 97.51, not
-        # 0.9751) — no PRICE_SCALE multiplication needed here.
-        out[orig].append((ts, float(close)))
+        # Project to (timestamp, close); this endpoint already reports every
+        # product in display scale, so nothing is rescaled here.
+        out[orig] = [(row[0], row[4]) for row in rows]
     return out
 
 

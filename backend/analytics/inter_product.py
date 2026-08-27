@@ -38,6 +38,7 @@ from .custom_structure import (
     lowess_beta,
     parse_weights,
     rolling_correlation_points,
+    structure_daily_candles,
 )
 from .fast import rolling_mean_std
 from .ols import ols
@@ -434,6 +435,12 @@ def build_inter_product_analysis(
             "leg_price_points": [
                 {"date": d, "a": float(value_arrays[0][i]), "b": float(value_arrays[1][i])}
                 for i, d in enumerate(dates)
+            ],
+            # True daily candles for leg 1 only — leg 2 stays a line, keeping
+            # this to a single extra hourly fetch. Restricted to the dates the
+            # paired line series already covers so the two can't disagree.
+            "leg_a_candles": [
+                c for c in structure_daily_candles(resolved[0].named) if c["date"] in set(dates)
             ],
             "rolling_correlation_points": relationship.get("rolling_correlation_points", []),
             "rv_points": _rv_band_points(dates, rv_raw, window_obs),

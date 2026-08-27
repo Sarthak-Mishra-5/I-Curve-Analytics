@@ -389,6 +389,85 @@ def _fetch_outright_history(names: list[str], count: int) -> dict[str, dict[floa
     }
 
 
+# Hourly bars to request per leg when building structure candles. A weighted
+# structure has no vendor product code of its own (its weights are arbitrary),
+# so its open/high/low/close has to be reconstructed: value the structure at
+# every hour its legs all traded, then group those hourly values by date. The
+# daily leg closes used elsewhere in this module can't do it — one close per
+# leg per day yields open==high==low==close, i.e. candles with no range at all.
+STRUCTURE_CANDLE_HOURS = 3200  # ~6 months of ~20-hour trading days
+
+
+def _fetch_leg_hourly_closes(names: list[str], count: int) -> dict[str, dict[float, float]]:
+    """Hourly closes per leg, as {name: {epoch_sec: close}}. Best-effort:
+    on any failure the caller falls back to a line instead of candles."""
+    from ..data.historical_api import curve_instrument_to_code
+    from ..data.ohlc_api import fetch_ohlcv
+
+    name_to_code: dict[str, str] = {}
+    for name in names:
+        curve_id = name.split()[0]
+        code = curve_instrument_to_code(curve_id, name)
+        if code is not None:
+            name_to_code[name] = code
+    if not name_to_code:
+        return {}
+    try:
+        rows_by_code = fetch_ohlcv(sorted(set(name_to_code.values())), "1H", count)
+    except Exception:  # noqa: BLE001
+        return {}
+    return {
+        name: {ts.timestamp(): close for ts, _o, _h, _l, close, _v in rows_by_code.get(code, [])}
+        for name, code in name_to_code.items()
+    }
+
+
+def structure_daily_candles(
+    named: list[tuple[str, int]], count: int = STRUCTURE_CANDLE_HOURS
+) -> list[dict]:
+    """Daily OHLC candles for one weighted structure.
+
+    Values the structure at every hour where *all* legs have a bar (an inner
+    join, so a leg's session gap drops that hour rather than silently holding
+    a stale price), then reduces each UTC date to open/high/low/close.
+
+    No volume is reported: a weighted combination of legs has no meaningful
+    traded volume of its own, and summing the legs' volumes would imply a
+    quantity that never traded as this structure.
+
+    Returns [] rather than raising if the legs can't be priced, so callers can
+    degrade to the daily close line.
+    """
+    if not named:
+        return []
+    leg_closes = _fetch_leg_hourly_closes(sorted({name for name, _ in named}), count)
+    if not leg_closes:
+        return []
+    maps = [leg_closes.get(name, {}) for name, _ in named]
+    if any(not m for m in maps):
+        return []
+    shared = sorted(set.intersection(*(set(m) for m in maps)))
+    if not shared:
+        return []
+
+    by_date: dict[str, list[float]] = {}
+    for t in shared:
+        value = sum(weight * maps[i][t] for i, (_, weight) in enumerate(named))
+        by_date.setdefault(_date_key(t), []).append(value)
+
+    candles: list[dict] = []
+    for date in sorted(by_date):
+        series = by_date[date]  # already in ascending-hour order
+        candles.append({
+            "date": date,
+            "o": float(series[0]),
+            "h": float(max(series)),
+            "l": float(min(series)),
+            "c": float(series[-1]),
+        })
+    return candles
+
+
 def _fetch_benchmark_history(curve_id: str, benchmark_names: list[str]) -> dict[str, dict[float, float]]:
     """Fetch this curve's configured benchmark structures using their native
     vendor product codes. A name with an explicit historical-code override
@@ -593,6 +672,11 @@ def build_structure_correlation_history(
             {"date": d, "a": float(merged[d][1]), "b": float(merged[d][2])}
             for d in dates
         ],
+        # True daily candles for structure A only (B stays a line), so the
+        # price chart above the correlation chart can show real range rather
+        # than a close-only line. One extra hourly fetch; see
+        # structure_daily_candles for why daily closes can't produce these.
+        "candles_a": [c for c in structure_daily_candles(named_a) if c["date"] in set(dates)],
     }
 
 
@@ -617,6 +701,12 @@ def build_structure_price_history(
     merged = _merged_series(store, named_a, named_b, history_days)
     dates = _dates_in_range(sorted(merged), start_date, end_date, history_days)
 
+    # Structure A additionally gets true daily candles (see
+    # structure_daily_candles); B stays a line, so only one extra hourly
+    # fetch is needed. Trimmed to the same dates the line series covers.
+    wanted = set(dates)
+    candles_a = [c for c in structure_daily_candles(named_a) if c["date"] in wanted]
+
     return {
         "label_a": label_a,
         "label_b": label_b,
@@ -626,4 +716,5 @@ def build_structure_price_history(
             {"date": d, "a": float(merged[d][1]), "b": float(merged[d][2])}
             for d in dates
         ],
+        "candles_a": candles_a,
     }
