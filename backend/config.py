@@ -9,7 +9,14 @@ SERVER_URL = "https://ls-md.corp.hertshtengroup.com/"
 ADAPTER_SET = "TTsdkLSAdapter"
 DATA_ADAPTER = "HGL1_Adapter"
 
-OHLC_API_URL = "https://qh-api.corp.hertshtengroup.com/api/v2/ohlc"
+# The vendor moved OHLC off /api/v2/ohlc (that path still authenticates this
+# token but now answers 403 Forbidden) onto the /apis/ gateway below. The
+# gateway does not accept the BEARER_TOKEN JWT — it answers 401
+# "Authentication credentials were not provided" identically for a valid
+# token, a garbage token and no header at all, so it wants a credential this
+# token is not. Backfill stays broken until new credentials are issued; see
+# get_auth_headers below.
+OHLC_API_URL = "https://qh-api.corp.hertshtengroup.com/apis/ohlc/"
 # Vendor limits. The row cap is per REQUEST and counted across every
 # instrument in it (4 instruments x count=3000 = 12000 rows is rejected), so
 # batch size has to be derived from the requested bar count — see
@@ -17,7 +24,7 @@ OHLC_API_URL = "https://qh-api.corp.hertshtengroup.com/api/v2/ohlc"
 OHLC_API_RATE_LIMIT_PER_MINUTE = 10
 OHLC_API_MAX_ROW = 10000
 
-BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoyMDg4NjkzNzM1LCJpYXQiOjE3NzMzMzM3MzUsImp0aSI6ImM1N2EzZjhiNTgwYjRjOGFhYjM4Yzg4MGU5ZjcwY2UyIiwidXNlcl9pZCI6MzgzfQ.TRJ6ept6qPf2iCZucURSzUKSJbYCrNYGdHsPa8aYZGc"
+BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJrcUhzTnI3UVNHa3VJOHA1dXlEMlRHWVE4di1iRjBsSV9aSkdQVUxuM1AwIiwidHlwZSI6InBlcnNvbmFsIiwiaWF0IjoxNzg5NjM1NTg2LCJleHAiOjI0MjAzNTU1ODYsInN1YiI6IjMyMCIsImVtYWlsIjoic2FydGhhay5taXNocmFAaGVydHNodGVuZ3JvdXAuY29tIiwidXNlcm5hbWUiOiJzYXJ0aGFrLm1pc2hyYSJ9.rF2dNVBx4oNx4whb_AALuhabauUXBKtFKGJKME5wafc"
 
 def get_auth_headers():
     return {

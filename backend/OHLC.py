@@ -4,7 +4,7 @@ import pandas as pd
 from config import get_auth_headers
 
 # Define the API endpoint
-url = "https://qh-api.corp.hertshtengroup.com/api/v2/ohlc"
+url = "https://qh-api.corp.hertshtengroup.com/apis/ohlc/"
 OHLC_API_RATE_LIMIT_PER_MINUTE = 10
 OHLC_API_MAX_ROWS_PER_REQUEST = 10000
 
