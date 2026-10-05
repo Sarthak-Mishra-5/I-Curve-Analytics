@@ -296,7 +296,6 @@ SUBSCRIBED_CONTRACTS_SR3 = [
 # The historical codes are the vendor's native OHLC symbols, whereas the IDs
 # are the Lightstreamer InstrumentIds used for live prices.
 STRUCTURE_CORRELATION_BENCHMARKS = [
-    ("ER3 Jun26-Dec26", "7049197886364910856", "FERM26-Z26"),
     ("I Dec26-Jun27", "9786540273641429331", "ERZ26-M27"),
     ("I Jun27-Dec27", "18266552713857873693", "ERM27-Z27"),
     ("I Dec26-Dec27", "4124494090517670240", "ERZ26-Z27"),
@@ -312,26 +311,27 @@ STRUCTURE_BENCHMARK_HISTORICAL_CODES = {
 }
 
 # Per-curve benchmark columns for the structure-analysis correlation table.
-# "I" keeps the original ER3-anchored benchmark set; SA3/SO3/SR3 compare
-# against their own native long-dated calendar spreads instead.
+# "I" uses the STRUCTURE_CORRELATION_BENCHMARKS set; SA3/SO3/SR3 compare
+# against their own native long-dated calendar spreads instead. The
+# Jun26-Dec26 columns were dropped once Jun26 expired.
 CURVE_BENCHMARK_NAMES: dict[str, list[str]] = {
     "I": [name for name, _, _ in STRUCTURE_CORRELATION_BENCHMARKS],
     "SA3": [
-        "SA3 Jun26-Dec26", "SA3 Dec26-Jun27", "SA3 Jun27-Dec27",
+        "SA3 Dec26-Jun27", "SA3 Jun27-Dec27",
         "SA3 Dec26-Dec27", "SA3 Dec27-Dec28",
     ],
     "SO3": [
-        "SO3 Jun26-Dec26", "SO3 Dec26-Jun27", "SO3 Jun27-Dec27",
+        "SO3 Dec26-Jun27", "SO3 Jun27-Dec27",
         "SO3 Dec26-Dec27", "SO3 Dec27-Dec28", "SO3 Dec28-Dec29", "SO3 Dec29-Dec30",
     ],
     "SR3": [
-        "SR3 Jun26-Dec26", "SR3 Dec26-Jun27", "SR3 Jun27-Dec27",
+        "SR3 Dec26-Jun27", "SR3 Jun27-Dec27",
         "SR3 Dec26-Dec27", "SR3 Dec27-Dec28", "SR3 Dec28-Dec29", "SR3 Dec29-Dec30",
     ],
 }
 
 # A few I benchmarks are already subscribed as ordinary I-curve structures.
-# Deduplicate those exact tuples while retaining the dedicated ER3 benchmark.
+# Deduplicate those exact tuples.
 _BENCHMARK_LIVE_CONTRACTS = [(name, instrument_id) for name, instrument_id, _ in STRUCTURE_CORRELATION_BENCHMARKS]
 ALL_CONTRACTS = list(dict.fromkeys(
     SUBSCRIBED_CONTRACTS_SA3
