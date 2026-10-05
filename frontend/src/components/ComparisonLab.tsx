@@ -287,6 +287,16 @@ export default function ComparisonLab({ curveId, curveSpec }: Props) {
             </div>
           </div>
 
+          {result.min_obs != null && result.n < result.min_obs ? (
+            <div style={{ color: '#ff3355', fontSize: '12px', marginBottom: '8px' }}>
+              Not enough data: only {result.n} daily observations in this range (need at least {result.min_obs}). Widen the date range.
+            </div>
+          ) : result.reliable_obs != null && result.n < result.reliable_obs ? (
+            <div style={{ color: '#ffaa00', fontSize: '12px', marginBottom: '8px' }}>
+              Based on only {result.n} daily observations (under {result.reliable_obs}). Treat these stats as indicative.
+            </div>
+          ) : null}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
             {FIELDS.map((f) => (
               <div key={String(f.key)} style={{ background: '#1a1a1a', border: '1px solid #262626', borderRadius: '4px', padding: '6px 8px' }}>

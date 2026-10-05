@@ -25,6 +25,12 @@ MAX_LEGS = 8
 MIN_OBS = 30
 LOWESS_FRAC = 0.3
 CORR_WINDOW_OBS = 30
+# The Comparison Lab works on one point per trading day over a user-picked
+# range, so the table-wide MIN_OBS (30) would blank out any range shorter
+# than ~6 weeks. Allow short ranges down to the same floor as the rolling
+# correlation chart; the response carries `reliable_obs` so the UI can flag
+# results computed on fewer than MIN_OBS days as statistically weak.
+COMPARISON_MIN_OBS = 10
 CORR_MIN_OBS = 10
 CORR_HISTORY_DAYS = 180
 BENCHMARK_HISTORY_COUNT = 1400
@@ -283,7 +289,9 @@ def build_comparison(
     result["generated_at"] = _iso(datetime.now(timezone.utc).timestamp())
     result["live_price_a"] = live_price_a
     result["live_price_b"] = live_price_b
-    if n < MIN_OBS:
+    result["min_obs"] = COMPARISON_MIN_OBS
+    result["reliable_obs"] = MIN_OBS
+    if n < COMPARISON_MIN_OBS:
         return result
 
     corr = float(np.corrcoef(va, vb)[0, 1]) if np.std(va) > 1e-12 and np.std(vb) > 1e-12 else None
@@ -302,7 +310,10 @@ def build_comparison(
     cointegrated, adf_pvalue = None, None
     if resid.size and np.std(resid) > 1e-12:  # flat residual -> statsmodels divide-by-zero
         try:
-            adf_stat, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
+            # statsmodels requires maxlag < nobs/2 - 2 (with a constant), so
+            # shrink the lag order for short ranges instead of failing outright.
+            maxlag = min(5, n // 2 - 3)
+            adf_stat, adf_p, *_ = adfuller(resid, maxlag=maxlag, autolag=None)
             adf_pvalue = float(adf_p)
             cointegrated = adf_pvalue < 0.05
         except Exception:  # noqa: BLE001

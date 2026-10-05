@@ -125,6 +125,10 @@ export type ComparisonResponse = {
   formula_a: number[];
   formula_b: number[];
   n: number;
+  // Fewest daily observations the backend will compute stats on, and the
+  // count below which those stats are flagged as statistically weak.
+  min_obs?: number;
+  reliable_obs?: number;
   correlation: number | null;
   regression_beta: number | null;
   lowess_beta: number | null;
