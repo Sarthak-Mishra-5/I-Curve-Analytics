@@ -39,7 +39,7 @@ async def curve_stats(curve_id: str) -> dict:
 
 
 @router.get("/{curve_id}/correlation-history")
-async def curve_correlation_history(
+def curve_correlation_history(
     curve_id: str,
     category: str = Query(..., description="'3ms' for spreads or '3mf' for flies"),
     current: str = Query(..., description="Current contract display name from the stats table"),
@@ -84,7 +84,7 @@ async def curve_history(
 
 
 @router.get("/{curve_id}/candles")
-async def curve_candles(
+def curve_candles(
     curve_id: str,
     instrument: str = Query(..., description="Contract display name, e.g. 'SR3 Sep27'"),
     interval: str = Query("30m", description="One of: 5m, 10m, 30m, 1h, 1d"),

@@ -40,7 +40,7 @@ class StructureCorrelationHistoryRequest(BaseModel):
 
 
 @router.post("/{curve_id}/custom-structure")
-async def custom_structure(curve_id: str, body: CustomStructureRequest) -> dict:
+def custom_structure(curve_id: str, body: CustomStructureRequest) -> dict:
     from .app import ctx
 
     spec = get_curve(curve_id)
@@ -57,7 +57,7 @@ async def custom_structure(curve_id: str, body: CustomStructureRequest) -> dict:
 
 
 @router.post("/{curve_id}/comparison")
-async def comparison(curve_id: str, body: ComparisonRequest) -> dict:
+def comparison(curve_id: str, body: ComparisonRequest) -> dict:
     from .app import ctx
 
     spec = get_curve(curve_id)
@@ -76,7 +76,7 @@ async def comparison(curve_id: str, body: ComparisonRequest) -> dict:
 
 
 @router.post("/{curve_id}/custom-structure/correlation-history")
-async def custom_structure_correlation_history(curve_id: str, body: StructureCorrelationHistoryRequest) -> dict:
+def custom_structure_correlation_history(curve_id: str, body: StructureCorrelationHistoryRequest) -> dict:
     from .app import ctx
 
     spec = get_curve(curve_id)
@@ -96,7 +96,7 @@ async def custom_structure_correlation_history(curve_id: str, body: StructureCor
 
 
 @router.post("/{curve_id}/custom-structure/price-history")
-async def custom_structure_price_history(curve_id: str, body: StructureCorrelationHistoryRequest) -> dict:
+def custom_structure_price_history(curve_id: str, body: StructureCorrelationHistoryRequest) -> dict:
     from .app import ctx
 
     spec = get_curve(curve_id)

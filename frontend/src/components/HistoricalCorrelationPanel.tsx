@@ -159,6 +159,7 @@ export default function HistoricalCorrelationPanel({ curveId, curveSpec }: Props
       <CorrelationOverTimeChart
         points={points}
         loading={loading}
+        loadingMessage={`Loading ${isCustom && selection ? `${shortName(selection.current)} ${selection.structureName}` : shortName(current)} correlation...`}
         emptyMessage={error ?? 'No cached points yet'}
         {...yRange}
       />

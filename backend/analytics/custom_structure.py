@@ -300,12 +300,13 @@ def build_comparison(
         vol_ratio = (vol_a / vol_b) if vol_b > 1e-12 else None
 
     cointegrated, adf_pvalue = None, None
-    try:
-        adf_stat, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
-        adf_pvalue = float(adf_p)
-        cointegrated = adf_pvalue < 0.05
-    except Exception:  # noqa: BLE001
-        pass
+    if resid.size and np.std(resid) > 1e-12:  # flat residual -> statsmodels divide-by-zero
+        try:
+            adf_stat, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
+            adf_pvalue = float(adf_p)
+            cointegrated = adf_pvalue < 0.05
+        except Exception:  # noqa: BLE001
+            pass
 
     result.update({
         "correlation": corr,

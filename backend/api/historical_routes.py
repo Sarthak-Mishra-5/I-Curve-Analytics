@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/historical", tags=["historical"])
 
 
 @router.get("/fetch")
-async def fetch_historical(
+def fetch_historical(
     instruments: str = Query(..., description="Comma-separated contract codes, e.g., 'H26,M26,U26'"),
     interval: str = Query("1H", description="Interval: 1H, 1D, 1M, 5M"),
     days_back: int = Query(30, description="Days to fetch back from today"),
@@ -56,7 +56,7 @@ async def fetch_historical(
 
 
 @router.get("/backfill")
-async def backfill_state(
+def backfill_state(
     cache_file: str | None = Query(None, description="Path to cached CSV (relative to data_cache/)")
 ) -> dict:
     """Load historical data into MarketState for analysis.
@@ -92,7 +92,7 @@ async def backfill_state(
 
 
 @router.get("/correlation")
-async def correlation_matrix(
+def correlation_matrix(
     top_n: int = Query(6, description="Number of tenors per product")
 ) -> dict:
     """Compute rolling correlation matrix from historical state."""
@@ -104,7 +104,7 @@ async def correlation_matrix(
 
 
 @router.get("/regression")
-async def regression_analytics() -> dict:
+def regression_analytics() -> dict:
     """Compute pair-by-tenor OLS regressions from historical state."""
     from .app import ctx
     from ..analytics.regression import compute_regressions

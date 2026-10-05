@@ -37,7 +37,7 @@ class InterProductAnalyzeRequest(BaseModel):
 
 
 @router.post("/analyze")
-async def analyze(body: InterProductAnalyzeRequest) -> dict:
+def analyze(body: InterProductAnalyzeRequest) -> dict:
     from .app import ctx
 
     if len(body.legs) != MAX_LEGS_V1:

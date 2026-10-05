@@ -287,12 +287,13 @@ def relationship_statistics(
         if resid.size and resid_std and resid_std > 1e-12 else None
     )
     cointegrated, adf_pvalue = None, None
-    try:
-        _, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
-        adf_pvalue = float(adf_p)
-        cointegrated = adf_pvalue < 0.05
-    except Exception:  # noqa: BLE001
-        pass
+    if resid_std and resid_std > 1e-12:  # flat residual -> statsmodels divide-by-zero
+        try:
+            _, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
+            adf_pvalue = float(adf_p)
+            cointegrated = adf_pvalue < 0.05
+        except Exception:  # noqa: BLE001
+            pass
 
     rc_points = rolling_correlation_points(
         ts, values_a, values_b, window_obs=window_obs, min_obs=min(CORR_MIN_OBS, window_obs),

@@ -43,7 +43,12 @@ def compute_cointegration(state: MarketState) -> list[dict]:
             "spread_mean": float(resid.mean()),
             "spread_std": float(resid.std()),
         }
-        if _SM:
+        # A flat input (e.g. no ticks yet / quiet market) has zero variance:
+        # statsmodels then divides by zero inside ADF/coint, spamming
+        # RuntimeWarnings every analytics tick and returning meaningless stats.
+        if _SM and np.std(resid) < 1e-12:
+            rec.update({"adf_stat": None, "adf_pvalue": None})
+        elif _SM:
             try:
                 adf_stat, adf_p, *_ = adfuller(resid, maxlag=5, autolag=None)
                 rec["adf_stat"] = float(adf_stat)
@@ -51,6 +56,9 @@ def compute_cointegration(state: MarketState) -> list[dict]:
             except Exception:  # noqa: BLE001
                 rec["adf_stat"] = None
                 rec["adf_pvalue"] = None
+        if _SM and (np.std(y) < 1e-12 or np.std(x) < 1e-12):
+            rec.update({"coint_t": None, "coint_pvalue": None})
+        elif _SM:
             try:
                 t_stat, p_val, _ = coint(y, x, maxlag=3)
                 rec["coint_t"] = float(t_stat)
